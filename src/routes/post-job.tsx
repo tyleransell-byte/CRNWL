@@ -69,6 +69,21 @@ const payPeriods = [
   { value: "year", label: "Per year" },
 ];
 
+const benefitOptions = [
+  "Holiday pay",
+  "Company car",
+  "Tips / service charge",
+  "Staff meals",
+  "Staff accommodation",
+  "Pension",
+  "Flexible hours",
+  "Staff discount",
+  "Free parking",
+  "Training provided",
+  "Uniform provided",
+  "Bonus scheme",
+];
+
 function PostJobPage() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
@@ -284,7 +299,6 @@ function JobForm({
   email: string;
 }) {
   const navigate = useNavigate();
-
   const [busy, setBusy] = useState(false);
 
   const [form, setForm] = useState({
@@ -299,9 +313,19 @@ function JobForm({
     description: "",
     requirements: "",
     perks: "",
+    benefits: [] as string[],
     contact_email: email,
     live_in: false,
   });
+
+  const toggleBenefit = (benefit: string) => {
+    setForm((current) => ({
+      ...current,
+      benefits: current.benefits.includes(benefit)
+        ? current.benefits.filter((item) => item !== benefit)
+        : [...current.benefits, benefit],
+    }));
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -329,7 +353,6 @@ function JobForm({
     setBusy(true);
 
     try {
-      // Check membership again immediately before publishing.
       const { data: membership, error: membershipError } =
         await supabase
           .from("profiles")
@@ -360,25 +383,28 @@ function JobForm({
           ? null
           : Number(form.pay_max);
 
+      const newJob = {
+        employer_id: userId,
+        title: form.title.trim(),
+        company_name: form.company_name.trim(),
+        location: form.location.trim(),
+        category: form.category,
+        job_type: form.job_type,
+        pay_min: payMin,
+        pay_max: payMax,
+        pay_period: form.pay_period,
+        description: form.description.trim(),
+        requirements: form.requirements.trim() || null,
+        perks: form.perks.trim() || null,
+        benefits: form.benefits,
+        contact_email: form.contact_email.trim() || null,
+        live_in: form.live_in,
+        is_published: true,
+      };
+
       const { data, error } = await supabase
         .from("jobs")
-        .insert({
-          employer_id: userId,
-          title: form.title.trim(),
-          company_name: form.company_name.trim(),
-          location: form.location.trim(),
-          category: form.category,
-          job_type: form.job_type,
-          pay_min: payMin,
-          pay_max: payMax,
-          pay_period: form.pay_period,
-          description: form.description.trim(),
-          requirements: form.requirements.trim() || null,
-          perks: form.perks.trim() || null,
-          contact_email: form.contact_email.trim() || null,
-          live_in: form.live_in,
-          is_published: true,
-        })
+        .insert(newJob as any)
         .select("id")
         .single();
 
@@ -669,17 +695,62 @@ function JobForm({
               }
             />
           </div>
+        </section>
+
+        {/* BENEFITS */}
+
+        <section className="space-y-5 border-t border-border pt-7">
+          <div>
+            <h2 className="font-display text-xl font-bold">
+              Benefits & perks
+            </h2>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+              Select everything that comes with this role.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {benefitOptions.map((benefit) => {
+              const selected =
+                form.benefits.includes(benefit);
+
+              return (
+                <label
+                  key={benefit}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors ${
+                    selected
+                      ? "border-primary bg-secondary"
+                      : "border-border bg-background hover:bg-secondary/40"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() =>
+                      toggleBenefit(benefit)
+                    }
+                    className="size-4 accent-current"
+                  />
+
+                  <span className="text-sm font-medium">
+                    {benefit}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
 
           <div className="grid gap-2">
             <Label htmlFor="perks">
-              Benefits & perks
+              Anything else?
             </Label>
 
             <textarea
               id="perks"
               rows={4}
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Staff meals, tips, accommodation, holiday pay..."
+              placeholder="Add any other benefits or perks..."
               value={form.perks}
               onChange={(e) =>
                 setForm({
