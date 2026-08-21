@@ -1,7 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Banknote, BedDouble, Building2, Clock, MapPin } from "lucide-react";
+import {
+  ArrowLeft,
+  Banknote,
+  BedDouble,
+  Building2,
+  Check,
+  Clock,
+  Gift,
+  MapPin,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,15 +25,22 @@ import { categoryLabel, formatPay, timeAgo } from "@/lib/jobs-data";
 export const Route = createFileRoute("/jobs/$jobId")({
   head: () => ({
     meta: [
-      { title: "Hospitality Job in Cornwall | Work in CRNWL" },
+      {
+        title: "Hospitality Job in Cornwall | Work in CRNWL",
+      },
       {
         name: "description",
-        content: "Full details and one-click apply for this Cornish hospitality vacancy.",
+        content:
+          "Full details and one-click apply for this Cornish hospitality vacancy.",
       },
-      { property: "og:title", content: "Hospitality Job in Cornwall | Work in CRNWL" },
+      {
+        property: "og:title",
+        content: "Hospitality Job in Cornwall | Work in CRNWL",
+      },
       {
         property: "og:description",
-        content: "Full details and one-click apply for this Cornish hospitality vacancy.",
+        content:
+          "Full details and one-click apply for this Cornish hospitality vacancy.",
       },
     ],
   }),
@@ -39,16 +55,25 @@ function JobDetail() {
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["job", jobId],
+
     queryFn: async () => {
-      const { data, error } = await supabase.from("jobs").select("*").eq("id", jobId).maybeSingle();
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("id", jobId)
+        .maybeSingle();
+
       if (error) throw error;
+
       return data;
     },
   });
 
   const { data: existing } = useQuery({
     queryKey: ["application", jobId, user?.id],
+
     enabled: !!user,
+
     queryFn: async () => {
       const { data } = await supabase
         .from("applications")
@@ -56,38 +81,65 @@ function JobDetail() {
         .eq("job_id", jobId)
         .eq("candidate_id", user!.id)
         .maybeSingle();
+
       return data;
     },
   });
 
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", cover_note: "" });
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    cover_note: "",
+  });
 
   useEffect(() => {
-    setForm((f) => ({
-      ...f,
-      full_name: f.full_name || profile?.full_name || "",
-      email: f.email || user?.email || "",
-      phone: f.phone || profile?.phone || "",
+    setForm((current) => ({
+      ...current,
+      full_name:
+        current.full_name ||
+        profile?.full_name ||
+        "",
+      email:
+        current.email ||
+        user?.email ||
+        "",
+      phone:
+        current.phone ||
+        profile?.phone ||
+        "",
     }));
   }, [profile, user]);
 
   const apply = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("applications").insert({
-        job_id: jobId,
-        candidate_id: user!.id,
-        full_name: form.full_name,
-        email: form.email,
-        phone: form.phone || null,
-        cover_note: form.cover_note || null,
-      });
+      const { error } = await supabase
+        .from("applications")
+        .insert({
+          job_id: jobId,
+          candidate_id: user!.id,
+          full_name: form.full_name,
+          email: form.email,
+          phone: form.phone || null,
+          cover_note:
+            form.cover_note || null,
+        });
+
       if (error) throw error;
     },
+
     onSuccess: () => {
-      toast.success("Application sent — good luck!");
-      void queryClient.invalidateQueries({ queryKey: ["application", jobId] });
+      toast.success(
+        "Application sent -- good luck!",
+      );
+
+      void queryClient.invalidateQueries({
+        queryKey: ["application", jobId],
+      });
     },
-    onError: (e: Error) => toast.error(e.message),
+
+    onError: (error: Error) =>
+      toast.error(error.message),
   });
 
   if (isLoading) {
@@ -102,16 +154,28 @@ function JobDetail() {
   if (!job) {
     return (
       <div className="mx-auto w-full max-w-4xl px-4 py-20 text-center">
-        <h1 className="font-display text-2xl font-bold">This role is no longer listed</h1>
+        <h1 className="font-display text-2xl font-bold">
+          This role is no longer listed
+        </h1>
+
         <Button asChild className="mt-6">
-          <Link to="/jobs">Browse other jobs</Link>
+          <Link to="/jobs">
+            Browse other jobs
+          </Link>
         </Button>
       </div>
     );
   }
 
-  const isEmployer = profile?.account_type === "employer";
-  const isOwner = user?.id === job.employer_id;
+  const isEmployer =
+    profile?.account_type === "employer";
+
+  const isOwner =
+    user?.id === job.employer_id;
+
+  const benefits = Array.isArray(job.benefits)
+    ? (job.benefits as string[])
+    : [];
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10">
@@ -119,66 +183,148 @@ function JobDetail() {
         to="/jobs"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" /> All jobs
+        <ArrowLeft className="size-4" />
+        All jobs
       </Link>
 
       <div className="mt-4 rounded-2xl border border-border bg-card p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl font-bold leading-tight">{job.title}</h1>
+            <h1 className="font-display text-3xl font-bold leading-tight">
+              {job.title}
+            </h1>
+
             <p className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground">
-              <Building2 className="size-4" /> {job.company_name}
+              <Building2 className="size-4" />
+              {job.company_name}
             </p>
           </div>
-          <Badge variant="secondary">{categoryLabel(job.category)}</Badge>
+
+          <Badge variant="secondary">
+            {categoryLabel(job.category)}
+          </Badge>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
-            <MapPin className="size-4" /> {job.location}
+            <MapPin className="size-4" />
+            {job.location}
           </span>
+
           <span className="inline-flex items-center gap-1.5">
             <Banknote className="size-4" />
-            {formatPay(job.pay_min, job.pay_max, job.pay_period)}
+            {formatPay(
+              job.pay_min,
+              job.pay_max,
+              job.pay_period,
+            )}
           </span>
+
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="size-4" /> {job.job_type}
+            <Clock className="size-4" />
+            {job.job_type}
           </span>
+
           {job.live_in && (
             <span className="inline-flex items-center gap-1.5">
-              <BedDouble className="size-4" /> Live-in available
+              <BedDouble className="size-4" />
+              Live-in available
             </span>
           )}
-          <span>Posted {timeAgo(job.created_at).toLowerCase()}</span>
+
+          <span>
+            Posted{" "}
+            {timeAgo(
+              job.created_at,
+            ).toLowerCase()}
+          </span>
         </div>
+
+        {/* BENEFITS */}
+
+        {(benefits.length > 0 || job.live_in) && (
+          <section className="mt-7 rounded-2xl border border-border bg-sand p-5">
+            <div className="flex items-center gap-2">
+              <Gift className="size-5 text-primary" />
+
+              <h2 className="font-display text-lg font-semibold">
+                Benefits & perks
+              </h2>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {benefits.map((benefit) => (
+                <span
+                  key={benefit}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium"
+                >
+                  <Check className="size-3.5 text-primary" />
+                  {benefit}
+                </span>
+              ))}
+
+              {job.live_in &&
+                !benefits.includes(
+                  "Staff accommodation",
+                ) && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium">
+                    <BedDouble className="size-3.5 text-primary" />
+                    Live-in accommodation
+                  </span>
+                )}
+            </div>
+          </section>
+        )}
 
         <div className="prose-sm mt-8 space-y-6">
           <section>
-            <h2 className="font-display text-lg font-semibold">The role</h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{job.description}</p>
+            <h2 className="font-display text-lg font-semibold">
+              The role
+            </h2>
+
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+              {job.description}
+            </p>
           </section>
+
           {job.requirements && (
             <section>
-              <h2 className="font-display text-lg font-semibold">What they're after</h2>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{job.requirements}</p>
+              <h2 className="font-display text-lg font-semibold">
+                What they're after
+              </h2>
+
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                {job.requirements}
+              </p>
             </section>
           )}
+
           {job.perks && (
             <section>
-              <h2 className="font-display text-lg font-semibold">Perks</h2>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{job.perks}</p>
+              <h2 className="font-display text-lg font-semibold">
+                Anything else
+              </h2>
+
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                {job.perks}
+              </p>
             </section>
           )}
         </div>
       </div>
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <h2 className="font-display text-xl font-bold">Apply for this role</h2>
+        <h2 className="font-display text-xl font-bold">
+          Apply for this role
+        </h2>
 
         {isOwner ? (
           <p className="mt-3 text-sm text-muted-foreground">
             This is your listing.{" "}
-            <Link to="/dashboard" className="text-primary underline-offset-4 hover:underline">
+            <Link
+              to="/dashboard"
+              className="text-primary underline-offset-4 hover:underline"
+            >
               View applicants in your dashboard
             </Link>
             .
@@ -186,69 +332,127 @@ function JobDetail() {
         ) : !user ? (
           <div className="mt-4">
             <p className="text-sm text-muted-foreground">
-              Create a free candidate account to apply in seconds.
+              Create a free candidate account to
+              apply in seconds.
             </p>
-            <Button className="mt-4" onClick={() => navigate({ to: "/auth" })}>
+
+            <Button
+              className="mt-4"
+              onClick={() =>
+                navigate({
+                  to: "/auth",
+                })
+              }
+            >
               Sign in or sign up
             </Button>
           </div>
         ) : isEmployer ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            You're signed in with an employer account, so you can't apply to listings.
+            You're signed in with an employer
+            account, so you can't apply to
+            listings.
           </p>
         ) : existing ? (
           <p className="mt-3 text-sm font-medium text-primary">
-            You applied for this role — status: {existing.status}.
+            You applied for this role -- status:{" "}
+            {existing.status}.
           </p>
         ) : (
           <form
             className="mt-4 grid gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
+            onSubmit={(event) => {
+              event.preventDefault();
               apply.mutate();
             }}
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="full_name">Full name</Label>
+                <Label htmlFor="full_name">
+                  Full name
+                </Label>
+
                 <Input
                   id="full_name"
                   required
                   value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      full_name:
+                        event.target.value,
+                    })
+                  }
                 />
               </div>
+
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  Email
+                </Label>
+
                 <Input
                   id="email"
                   type="email"
                   required
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      email:
+                        event.target.value,
+                    })
+                  }
                 />
               </div>
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
+              <Label htmlFor="phone">
+                Phone (optional)
+              </Label>
+
               <Input
                 id="phone"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    phone:
+                      event.target.value,
+                  })
+                }
               />
             </div>
+
             <div className="grid gap-2">
-              <Label htmlFor="cover_note">Why you're a good fit</Label>
+              <Label htmlFor="cover_note">
+                Why you're a good fit
+              </Label>
+
               <Textarea
                 id="cover_note"
                 rows={5}
                 placeholder="Tell them about your experience, availability and start date…"
                 value={form.cover_note}
-                onChange={(e) => setForm({ ...form, cover_note: e.target.value })}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    cover_note:
+                      event.target.value,
+                  })
+                }
               />
             </div>
-            <Button type="submit" variant="accent" disabled={apply.isPending}>
-              {apply.isPending ? "Sending…" : "Send application"}
+
+            <Button
+              type="submit"
+              variant="accent"
+              disabled={apply.isPending}
+            >
+              {apply.isPending
+                ? "Sending…"
+                : "Send application"}
             </Button>
           </form>
         )}
