@@ -153,7 +153,7 @@ function Home() {
         </div>
       </section>
 <section className="mx-auto mt-16 w-full max-w-6xl px-4">
-  <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
+  <div className="rounded-2xl border border-border bg-sand p-8 text-center sm:p-12">
     <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
       CRNWL believes in people
     </p>
