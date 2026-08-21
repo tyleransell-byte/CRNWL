@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   BadgeCheck,
   BadgePoundSterling,
@@ -8,6 +10,8 @@ import {
   Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/employers")({
   head: () => ({
@@ -64,10 +68,62 @@ const membershipBenefits = [
   "No recruitment agency commission",
 ];
 
+function FoundingEmployerCheckoutButton() {
+  const { user, profile, loading } = useAuth();
+  const [busy, setBusy] = useState(false);
+
+  const startCheckout = async () => {
+    if (!user) {
+      window.location.href = "/auth?mode=employer";
+      return;
+    }
+
+    if (profile && profile.account_type !== "employer") {
+      toast.error("Please use an employer account to purchase membership.");
+      return;
+    }
+
+    setBusy(true);
+
+    const { data, error } = await supabase.functions.invoke(
+      "create-checkout",
+      {
+        body: {},
+      },
+    );
+
+    setBusy(false);
+
+    if (error) {
+      console.error(error);
+      toast.error("Could not start checkout. Please try again.");
+      return;
+    }
+
+    if (!data?.url) {
+      toast.error("Stripe checkout could not be opened.");
+      return;
+    }
+
+    window.location.assign(data.url);
+  };
+
+  return (
+    <Button
+      type="button"
+      className="mt-5 w-full"
+      variant="accent"
+      disabled={busy || loading}
+      onClick={startCheckout}
+    >
+      {busy ? "Opening checkout…" : "Join for £25/year"}
+    </Button>
+  );
+}
+
 function EmployersPage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-14">
-      {/* HERO */}
       <section>
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">
           Built for Cornwall hospitality
@@ -96,7 +152,6 @@ function EmployersPage() {
         </div>
       </section>
 
-      {/* BENEFITS */}
       <section className="mt-14 grid gap-4 sm:grid-cols-2">
         {points.map((p) => (
           <div
@@ -116,7 +171,6 @@ function EmployersPage() {
         ))}
       </section>
 
-      {/* FOUNDING EMPLOYER */}
       <section className="mt-16">
         <div className="overflow-hidden rounded-2xl border border-border bg-sand">
           <div className="p-8 sm:p-10">
@@ -175,18 +229,13 @@ function EmployersPage() {
                   Unlimited listings for one employer account.
                 </p>
 
-                <Button asChild className="mt-5 w-full" variant="accent">
-                  <Link to="/auth" search={{ mode: "employer" }}>
-                    Join as an employer
-                  </Link>
-                </Button>
+                <FoundingEmployerCheckoutButton />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* EARLY EMPLOYERS */}
       <section className="mt-8">
         <div className="rounded-2xl border border-dashed border-border bg-card p-6 sm:p-8">
           <p className="font-display text-xl font-bold">
@@ -202,7 +251,6 @@ function EmployersPage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section className="mt-14 rounded-2xl border border-border bg-sand p-8">
         <h2 className="font-display text-2xl font-bold">How it works</h2>
 
