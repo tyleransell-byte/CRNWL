@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Anchor, LogOut, Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,17 +22,21 @@ export function SiteHeader() {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Anchor className="size-4" />
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
+      <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center gap-3 px-4">
+        
+        {/* CRNWL BRAND */}
+        <Link to="/" className="flex shrink-0 flex-col justify-center leading-none">
+          <span className="font-display text-base font-bold leading-none tracking-tight">
+            Work in
           </span>
-          <span className="font-display text-lg font-bold tracking-tight">
-            Work in <span className="text-gradient-sea">CRNWL</span>
+
+          <span className="mt-1 font-display text-3xl font-extrabold leading-none tracking-tight text-gradient-sea sm:text-4xl">
+            CRNWL
           </span>
         </Link>
 
+        {/* DESKTOP NAVIGATION */}
         <nav className="ml-6 hidden items-center gap-1 md:flex">
           {links.map((l) => (
             <Link
@@ -46,41 +50,68 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        {/* ACCOUNT / ACTIONS */}
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           {user ? (
             <>
-              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
+
               {profile?.account_type === "employer" && (
-                <Button asChild size="sm" variant="accent" className="hidden sm:inline-flex">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="accent"
+                  className="hidden sm:inline-flex"
+                >
                   <Link to="/post-job">Post a job</Link>
                 </Button>
               )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" aria-label="Account menu">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Account menu"
+                  >
                     <span className="text-xs font-semibold">
-                      {(profile?.full_name || user.email || "?").slice(0, 2).toUpperCase()}
+                      {(profile?.full_name || user.email || "?")
+                        .slice(0, 2)
+                        .toUpperCase()}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: "/dashboard" })}
+                  >
                     Dashboard
                   </DropdownMenuItem>
+
                   {profile?.account_type === "employer" && (
-                    <DropdownMenuItem onClick={() => navigate({ to: "/post-job" })}>
+                    <DropdownMenuItem
+                      onClick={() => navigate({ to: "/post-job" })}
+                    >
                       Post a job
                     </DropdownMenuItem>
                   )}
+
                   <DropdownMenuItem
                     onClick={async () => {
                       await signOut();
                       navigate({ to: "/" });
                     }}
                   >
-                    <LogOut className="mr-2 size-4" /> Sign out
+                    <LogOut className="mr-2 size-4" />
+                    Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -90,6 +121,7 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/auth">Sign in</Link>
               </Button>
+
               <Button asChild size="sm" variant="accent">
                 <Link to="/auth" search={{ mode: "employer" }}>
                   Post a job
@@ -97,6 +129,7 @@ export function SiteHeader() {
               </Button>
             </>
           )}
+
           <Button
             variant="ghost"
             size="icon"
@@ -109,6 +142,7 @@ export function SiteHeader() {
         </div>
       </div>
 
+      {/* MOBILE MENU */}
       {open && (
         <nav className="border-t border-border bg-background px-4 py-2 md:hidden">
           {links.map((l) => (
