@@ -152,7 +152,26 @@ function Home() {
           )}
         </div>
       </section>
+<section className="mx-auto mt-16 w-full max-w-6xl px-4">
+  <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
+    <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
+      CRNWL believes in people
+    </p>
 
+    <h2 className="mt-3 font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+      NO CVs.
+    </h2>
+
+    <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+      Hospitality is about people, not paperwork. Tell employers who you are,
+      what experience you have and when you can work -- no polished CV required.
+    </p>
+
+    <Button asChild className="mt-6" variant="accent">
+      <Link to="/jobs">Find a job</Link>
+    </Button>
+  </div>
+</section>
       <section className="mx-auto mt-16 w-full max-w-6xl px-4">
         <div className="rounded-2xl border border-border bg-sand p-8 sm:p-12">
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
