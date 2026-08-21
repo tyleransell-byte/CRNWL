@@ -13,7 +13,7 @@ export default defineConfig({
     tanstackStart({
       srcDirectory: "src",
     }),
-    viteReact(),
     nitro(),
+    viteReact(),
   ],
 });
