@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   BadgeCheck,
   Briefcase,
+  CalendarClock,
   CreditCard,
   ExternalLink,
   Mail,
@@ -128,6 +129,7 @@ function EmployerView({
           `
           membership_status,
           membership_expires_at,
+          cancel_at_period_end,
           stripe_customer_id,
           stripe_subscription_id
           `,
@@ -355,6 +357,10 @@ function EmployerView({
   const membershipActive =
     membership?.membership_status === "active";
 
+  const cancellationScheduled =
+    membershipActive &&
+    membership?.cancel_at_period_end === true;
+
   const expiryDate =
     membership?.membership_expires_at
       ? new Date(
@@ -373,36 +379,62 @@ function EmployerView({
       {membershipLoading ? (
         <Skeleton className="h-52 w-full rounded-2xl" />
       ) : membershipActive ? (
-        /*
-         * ACTIVE MEMBERSHIP
-         */
         <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2">
-                <BadgeCheck className="size-6 text-primary" />
+                {cancellationScheduled ? (
+                  <CalendarClock className="size-6 text-primary" />
+                ) : (
+                  <BadgeCheck className="size-6 text-primary" />
+                )}
 
                 <span className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
                   Founding Employer
                 </span>
               </div>
 
-              <h2 className="mt-3 font-display text-2xl font-bold">
-                Your membership is active
-              </h2>
+              {cancellationScheduled ? (
+                <>
+                  <h2 className="mt-3 font-display text-2xl font-bold">
+                    Your membership is still active.
+                  </h2>
 
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                You can post unlimited hospitality
-                vacancies across CRNWL.
-              </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    You've cancelled automatic renewal, but you can continue
+                    using CRNWL until the end of your paid membership.
+                  </p>
 
-              {expiryDate && (
-                <p className="mt-3 text-sm">
-                  <span className="font-medium">
-                    Membership valid until:
-                  </span>{" "}
-                  {expiryDate}
-                </p>
+                  {expiryDate && (
+                    <p className="mt-3 text-sm font-medium">
+                      Full access until {expiryDate}
+                    </p>
+                  )}
+
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    You can keep posting jobs and receiving applications until
+                    that date.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="mt-3 font-display text-2xl font-bold">
+                    Your membership is active
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    You can post unlimited hospitality vacancies across CRNWL.
+                  </p>
+
+                  {expiryDate && (
+                    <p className="mt-3 text-sm">
+                      <span className="font-medium">
+                        Current membership period:
+                      </span>{" "}
+                      until {expiryDate}
+                    </p>
+                  )}
+                </>
               )}
 
               <div className="mt-5 flex flex-wrap gap-3">
@@ -418,7 +450,9 @@ function EmployerView({
 
                   {portal.isPending
                     ? "Opening…"
-                    : "Manage membership"}
+                    : cancellationScheduled
+                      ? "Resume or manage membership"
+                      : "Manage membership"}
                 </Button>
 
                 <Button
@@ -441,9 +475,15 @@ function EmployerView({
                 Active
               </p>
 
-              <p className="mt-1 text-xs text-muted-foreground">
-                Unlimited listings
-              </p>
+              {cancellationScheduled ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Renewal cancelled
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Unlimited listings
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -463,13 +503,11 @@ function EmployerView({
               </div>
 
               <h2 className="mt-3 font-display text-2xl font-bold">
-                Unlimited job listings for £25 a
-                year.
+                Unlimited job listings for £25 a year.
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Advertise as many hospitality
-                vacancies as your business needs
+                Advertise as many hospitality vacancies as your business needs
                 for the next 12 months.
               </p>
 
@@ -539,8 +577,7 @@ function EmployerView({
             </Button>
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
-              Activate your employer membership
-              above to start posting jobs.
+              Activate your employer membership above to start posting jobs.
             </p>
           )}
         </div>
@@ -754,12 +791,10 @@ function EmployerView({
                       ),
                     )}
 
-                    {applications.length ===
-                      0 && (
+                    {applications.length === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        No applications yet --
-                        share the listing link to
-                        get things moving.
+                        No applications yet -- share the listing link to get
+                        things moving.
                       </p>
                     )}
                   </div>
