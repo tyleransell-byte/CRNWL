@@ -16,10 +16,11 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { to: "/jobs", label: "Browse jobs" },
-    { to: "/employers", label: "For employers" },
-    { to: "/about", label: "About" },
-  ] as const;
+  { to: "/jobs", label: "Browse jobs" },
+  { to: "/employers", label: "For employers" },
+  { to: "/about", label: "About" },
+  { to: "/founder", label: "Our Story" },
+] as const;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
