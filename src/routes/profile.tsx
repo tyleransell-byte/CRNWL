@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+
 import {
   Select,
   SelectContent,
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/profile")({
       },
     ],
   }),
+
   component: CandidateProfilePage,
 });
 
@@ -67,6 +69,8 @@ const workPreferenceOptions = [
   "Permanent",
 ];
 
+const ANYWHERE_LOCATION = "Anywhere in Cornwall";
+
 const cornwallLocations = [
   "Bodmin",
   "Bude",
@@ -89,11 +93,20 @@ const cornwallLocations = [
 ];
 
 function CandidateProfilePage() {
-  const { user, profile, loading, refreshProfile } = useAuth();
+  const {
+    user,
+    profile,
+    loading,
+    refreshProfile,
+  } = useAuth();
+
   const navigate = useNavigate();
 
-  const [pageLoading, setPageLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [pageLoading, setPageLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -116,7 +129,9 @@ function CandidateProfilePage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      void navigate({ to: "/auth" });
+      void navigate({
+        to: "/auth",
+      });
     }
   }, [loading, user, navigate]);
 
@@ -160,28 +175,66 @@ function CandidateProfilePage() {
       }
 
       if (data.account_type !== "candidate") {
-        toast.error("Candidate profiles are for job seekers.");
-        void navigate({ to: "/dashboard" });
+        toast.error(
+          "Candidate profiles are for job seekers.",
+        );
+
+        void navigate({
+          to: "/dashboard",
+        });
+
         return;
       }
 
       setForm({
-        full_name: data.full_name ?? "",
-        date_of_birth: data.date_of_birth ?? "",
-        location: data.location ?? "",
-        bio: data.bio ?? "",
-        current_role: data.current_role ?? "",
-        years_experience: data.years_experience ?? "",
-        phone: data.phone ?? "",
-        experience_tags: data.experience_tags ?? [],
-        available_immediately: data.available_immediately ?? false,
-        available_from: data.available_from ?? "",
-        work_preferences: data.work_preferences ?? [],
-        preferred_locations: data.preferred_locations ?? [],
-        driving_licence: data.driving_licence ?? "prefer_not_to_say",
-        own_transport: data.own_transport ?? false,
-        interested_in_live_in: data.interested_in_live_in ?? false,
-        open_to_work: data.open_to_work ?? true,
+        full_name:
+          data.full_name ?? "",
+
+        date_of_birth:
+          data.date_of_birth ?? "",
+
+        location:
+          data.location ?? "",
+
+        bio:
+          data.bio ?? "",
+
+        current_role:
+          data.current_role ?? "",
+
+        years_experience:
+          data.years_experience ?? "",
+
+        phone:
+          data.phone ?? "",
+
+        experience_tags:
+          data.experience_tags ?? [],
+
+        available_immediately:
+          data.available_immediately ?? false,
+
+        available_from:
+          data.available_from ?? "",
+
+        work_preferences:
+          data.work_preferences ?? [],
+
+        preferred_locations:
+          data.preferred_locations ?? [],
+
+        driving_licence:
+          data.driving_licence ??
+          "prefer_not_to_say",
+
+        own_transport:
+          data.own_transport ?? false,
+
+        interested_in_live_in:
+          data.interested_in_live_in ?? false,
+
+        open_to_work:
+          data.open_to_work ?? true,
       });
     };
 
@@ -189,26 +242,84 @@ function CandidateProfilePage() {
   }, [user, navigate]);
 
   const toggleArrayValue = (
-    field: "experience_tags" | "work_preferences" | "preferred_locations",
+    field:
+      | "experience_tags"
+      | "work_preferences"
+      | "preferred_locations",
+
     value: string,
   ) => {
     setForm((current) => {
-      const selected = current[field];
+      const selected =
+        current[field];
 
       return {
         ...current,
-        [field]: selected.includes(value)
-          ? selected.filter((item) => item !== value)
-          : [...selected, value],
+
+        [field]:
+          selected.includes(value)
+            ? selected.filter(
+                (item) =>
+                  item !== value,
+              )
+            : [
+                ...selected,
+                value,
+              ],
       };
     });
+  };
+
+  /*
+   * ANYWHERE IN CORNWALL
+   */
+
+  const anywhereSelected =
+    form.preferred_locations.includes(
+      ANYWHERE_LOCATION,
+    );
+
+  const toggleAnywhere = () => {
+    setForm((current) => {
+      const currentlyAnywhere =
+        current.preferred_locations.includes(
+          ANYWHERE_LOCATION,
+        );
+
+      return {
+        ...current,
+
+        preferred_locations:
+          currentlyAnywhere
+            ? []
+            : [
+                ANYWHERE_LOCATION,
+              ],
+      };
+    });
+  };
+
+  const toggleLocation = (
+    location: string,
+  ) => {
+    if (anywhereSelected) {
+      return;
+    }
+
+    toggleArrayValue(
+      "preferred_locations",
+      location,
+    );
   };
 
   const saveProfile = async () => {
     if (!user) return;
 
     if (!form.full_name.trim()) {
-      toast.error("Please add your full name.");
+      toast.error(
+        "Please add your full name.",
+      );
+
       return;
     }
 
@@ -217,24 +328,62 @@ function CandidateProfilePage() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: form.full_name.trim(),
-        date_of_birth: form.date_of_birth || null,
-        location: form.location.trim() || null,
-        bio: form.bio.trim() || null,
-        current_role: form.current_role.trim() || null,
-        years_experience: form.years_experience || null,
-        phone: form.phone.trim() || null,
-        experience_tags: form.experience_tags,
-        available_immediately: form.available_immediately,
-        available_from: form.available_immediately
-          ? null
-          : form.available_from || null,
-        work_preferences: form.work_preferences,
-        preferred_locations: form.preferred_locations,
-        driving_licence: form.driving_licence,
-        own_transport: form.own_transport,
-        interested_in_live_in: form.interested_in_live_in,
-        open_to_work: form.open_to_work,
+        full_name:
+          form.full_name.trim(),
+
+        date_of_birth:
+          form.date_of_birth ||
+          null,
+
+        location:
+          form.location.trim() ||
+          null,
+
+        bio:
+          form.bio.trim() ||
+          null,
+
+        current_role:
+          form.current_role.trim() ||
+          null,
+
+        years_experience:
+          form.years_experience ||
+          null,
+
+        phone:
+          form.phone.trim() ||
+          null,
+
+        experience_tags:
+          form.experience_tags,
+
+        available_immediately:
+          form.available_immediately,
+
+        available_from:
+          form.available_immediately
+            ? null
+            : form.available_from ||
+              null,
+
+        work_preferences:
+          form.work_preferences,
+
+        preferred_locations:
+          form.preferred_locations,
+
+        driving_licence:
+          form.driving_licence,
+
+        own_transport:
+          form.own_transport,
+
+        interested_in_live_in:
+          form.interested_in_live_in,
+
+        open_to_work:
+          form.open_to_work,
       })
       .eq("id", user.id);
 
@@ -247,10 +396,16 @@ function CandidateProfilePage() {
 
     await refreshProfile();
 
-    toast.success("Profile saved");
+    toast.success(
+      "Profile saved",
+    );
   };
 
-  if (loading || !user || pageLoading) {
+  if (
+    loading ||
+    !user ||
+    pageLoading
+  ) {
     return (
       <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-12">
         <Skeleton className="h-10 w-64" />
@@ -259,12 +414,17 @@ function CandidateProfilePage() {
     );
   }
 
-  if (profile?.account_type === "employer") {
+  if (
+    profile?.account_type ===
+    "employer"
+  ) {
     return null;
   }
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-12">
+      {/* HEADER */}
+
       <div className="flex items-center gap-3">
         <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <UserRound className="size-5" />
@@ -282,8 +442,9 @@ function CandidateProfilePage() {
       </div>
 
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        No CV required. Build a simple profile showing your experience,
-        availability and what kind of hospitality work you're looking for.
+        No CV required. Build a simple profile showing your
+        experience, availability and what kind of hospitality
+        work you're looking for.
       </p>
 
       <div className="mt-8 space-y-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
@@ -307,11 +468,16 @@ function CandidateProfilePage() {
             </div>
 
             <Switch
-              checked={form.open_to_work}
-              onCheckedChange={(checked) =>
+              checked={
+                form.open_to_work
+              }
+              onCheckedChange={(
+                checked,
+              ) =>
                 setForm({
                   ...form,
-                  open_to_work: checked,
+                  open_to_work:
+                    checked,
                 })
               }
             />
@@ -327,16 +493,24 @@ function CandidateProfilePage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="full-name">Full name</Label>
+              <Label htmlFor="full-name">
+                Full name
+              </Label>
 
               <Input
                 id="full-name"
                 required
-                value={form.full_name}
-                onChange={(event) =>
+                value={
+                  form.full_name
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    full_name: event.target.value,
+                    full_name:
+                      event.target
+                        .value,
                   })
                 }
               />
@@ -350,11 +524,17 @@ function CandidateProfilePage() {
               <Input
                 id="dob"
                 type="date"
-                value={form.date_of_birth}
-                onChange={(event) =>
+                value={
+                  form.date_of_birth
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    date_of_birth: event.target.value,
+                    date_of_birth:
+                      event.target
+                        .value,
                   })
                 }
               />
@@ -374,11 +554,17 @@ function CandidateProfilePage() {
               <Input
                 id="location"
                 placeholder="Newquay"
-                value={form.location}
-                onChange={(event) =>
+                value={
+                  form.location
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    location: event.target.value,
+                    location:
+                      event.target
+                        .value,
                   })
                 }
               />
@@ -392,11 +578,17 @@ function CandidateProfilePage() {
               <Input
                 id="phone"
                 type="tel"
-                value={form.phone}
-                onChange={(event) =>
+                value={
+                  form.phone
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    phone: event.target.value,
+                    phone:
+                      event.target
+                        .value,
                   })
                 }
               />
@@ -415,10 +607,14 @@ function CandidateProfilePage() {
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="Tell employers a little about yourself, what you enjoy about hospitality and what you're looking for..."
               value={form.bio}
-              onChange={(event) =>
+              onChange={(
+                event,
+              ) =>
                 setForm({
                   ...form,
-                  bio: event.target.value,
+                  bio:
+                    event.target
+                      .value,
                 })
               }
             />
@@ -449,25 +645,38 @@ function CandidateProfilePage() {
               <Input
                 id="current-role"
                 placeholder="Bartender"
-                value={form.current_role}
-                onChange={(event) =>
+                value={
+                  form.current_role
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    current_role: event.target.value,
+                    current_role:
+                      event.target
+                        .value,
                   })
                 }
               />
             </div>
 
             <div className="grid gap-2">
-              <Label>Hospitality experience</Label>
+              <Label>
+                Hospitality experience
+              </Label>
 
               <Select
-                value={form.years_experience}
-                onValueChange={(value) =>
+                value={
+                  form.years_experience
+                }
+                onValueChange={(
+                  value,
+                ) =>
                   setForm({
                     ...form,
-                    years_experience: value,
+                    years_experience:
+                      value,
                   })
                 }
               >
@@ -505,40 +714,48 @@ function CandidateProfilePage() {
           </div>
 
           <div>
-            <Label>What have you worked in?</Label>
+            <Label>
+              What have you worked in?
+            </Label>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {experienceOptions.map((tag) => {
-                const selected =
-                  form.experience_tags.includes(tag);
+              {experienceOptions.map(
+                (tag) => {
+                  const selected =
+                    form.experience_tags.includes(
+                      tag,
+                    );
 
-                return (
-                  <label
-                    key={tag}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
-                      selected
-                        ? "border-primary bg-secondary"
-                        : "border-border bg-background hover:bg-secondary/40"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() =>
-                        toggleArrayValue(
-                          "experience_tags",
-                          tag,
-                        )
-                      }
-                      className="size-4 accent-current"
-                    />
+                  return (
+                    <label
+                      key={tag}
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
+                        selected
+                          ? "border-primary bg-secondary"
+                          : "border-border bg-background hover:bg-secondary/40"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          selected
+                        }
+                        onChange={() =>
+                          toggleArrayValue(
+                            "experience_tags",
+                            tag,
+                          )
+                        }
+                        className="size-4 accent-current"
+                      />
 
-                    <span className="text-sm font-medium">
-                      {tag}
-                    </span>
-                  </label>
-                );
-              })}
+                      <span className="text-sm font-medium">
+                        {tag}
+                      </span>
+                    </label>
+                  );
+                },
+              )}
             </div>
           </div>
         </section>
@@ -566,11 +783,16 @@ function CandidateProfilePage() {
             </div>
 
             <Switch
-              checked={form.available_immediately}
-              onCheckedChange={(checked) =>
+              checked={
+                form.available_immediately
+              }
+              onCheckedChange={(
+                checked,
+              ) =>
                 setForm({
                   ...form,
-                  available_immediately: checked,
+                  available_immediately:
+                    checked,
                 })
               }
             />
@@ -585,11 +807,17 @@ function CandidateProfilePage() {
               <Input
                 id="available-from"
                 type="date"
-                value={form.available_from}
-                onChange={(event) =>
+                value={
+                  form.available_from
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    available_from: event.target.value,
+                    available_from:
+                      event.target
+                        .value,
                   })
                 }
               />
@@ -597,40 +825,50 @@ function CandidateProfilePage() {
           )}
 
           <div>
-            <Label>What kind of work?</Label>
+            <Label>
+              What kind of work?
+            </Label>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {workPreferenceOptions.map((preference) => {
-                const selected =
-                  form.work_preferences.includes(preference);
+              {workPreferenceOptions.map(
+                (preference) => {
+                  const selected =
+                    form.work_preferences.includes(
+                      preference,
+                    );
 
-                return (
-                  <label
-                    key={preference}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${
-                      selected
-                        ? "border-primary bg-secondary"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() =>
-                        toggleArrayValue(
-                          "work_preferences",
-                          preference,
-                        )
+                  return (
+                    <label
+                      key={
+                        preference
                       }
-                      className="size-4"
-                    />
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${
+                        selected
+                          ? "border-primary bg-secondary"
+                          : "border-border bg-background"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          selected
+                        }
+                        onChange={() =>
+                          toggleArrayValue(
+                            "work_preferences",
+                            preference,
+                          )
+                        }
+                        className="size-4"
+                      />
 
-                    <span className="text-sm font-medium">
-                      {preference}
-                    </span>
-                  </label>
-                );
-              })}
+                      <span className="text-sm font-medium">
+                        {preference}
+                      </span>
+                    </label>
+                  );
+                },
+              )}
             </div>
           </div>
         </section>
@@ -646,38 +884,88 @@ function CandidateProfilePage() {
             </h2>
           </div>
 
+          <p className="text-sm text-muted-foreground">
+            Choose individual areas, or select anywhere if you're happy to work
+            across Cornwall.
+          </p>
+
+          {/* ANYWHERE */}
+
+          <label
+            className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors ${
+              anywhereSelected
+                ? "border-primary bg-secondary"
+                : "border-border bg-sand hover:bg-secondary/40"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={
+                anywhereSelected
+              }
+              onChange={
+                toggleAnywhere
+              }
+              className="size-4"
+            />
+
+            <div>
+              <p className="text-sm font-semibold">
+                Anywhere in Cornwall
+              </p>
+
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                I'm happy to consider roles anywhere in Cornwall.
+              </p>
+            </div>
+          </label>
+
+          {/* TOWNS */}
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {cornwallLocations.map((location) => {
-              const selected =
-                form.preferred_locations.includes(location);
+            {cornwallLocations.map(
+              (location) => {
+                const selected =
+                  form.preferred_locations.includes(
+                    location,
+                  );
 
-              return (
-                <label
-                  key={location}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${
-                    selected
-                      ? "border-primary bg-secondary"
-                      : "border-border bg-background"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() =>
-                      toggleArrayValue(
-                        "preferred_locations",
-                        location,
-                      )
+                return (
+                  <label
+                    key={
+                      location
                     }
-                    className="size-4"
-                  />
+                    className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
+                      anywhereSelected
+                        ? "cursor-not-allowed border-border bg-muted/40 opacity-50"
+                        : selected
+                          ? "cursor-pointer border-primary bg-secondary"
+                          : "cursor-pointer border-border bg-background hover:bg-secondary/40"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={
+                        selected
+                      }
+                      disabled={
+                        anywhereSelected
+                      }
+                      onChange={() =>
+                        toggleLocation(
+                          location,
+                        )
+                      }
+                      className="size-4"
+                    />
 
-                  <span className="text-sm font-medium">
-                    {location}
-                  </span>
-                </label>
-              );
-            })}
+                    <span className="text-sm font-medium">
+                      {location}
+                    </span>
+                  </label>
+                );
+              },
+            )}
           </div>
         </section>
 
@@ -693,14 +981,21 @@ function CandidateProfilePage() {
           </div>
 
           <div className="grid gap-2">
-            <Label>Driving licence</Label>
+            <Label>
+              Driving licence
+            </Label>
 
             <Select
-              value={form.driving_licence}
-              onValueChange={(value) =>
+              value={
+                form.driving_licence
+              }
+              onValueChange={(
+                value,
+              ) =>
                 setForm({
                   ...form,
-                  driving_licence: value,
+                  driving_licence:
+                    value,
                 })
               }
             >
@@ -740,11 +1035,16 @@ function CandidateProfilePage() {
             </div>
 
             <Switch
-              checked={form.own_transport}
-              onCheckedChange={(checked) =>
+              checked={
+                form.own_transport
+              }
+              onCheckedChange={(
+                checked,
+              ) =>
                 setForm({
                   ...form,
-                  own_transport: checked,
+                  own_transport:
+                    checked,
                 })
               }
             />
@@ -762,11 +1062,16 @@ function CandidateProfilePage() {
             </div>
 
             <Switch
-              checked={form.interested_in_live_in}
-              onCheckedChange={(checked) =>
+              checked={
+                form.interested_in_live_in
+              }
+              onCheckedChange={(
+                checked,
+              ) =>
                 setForm({
                   ...form,
-                  interested_in_live_in: checked,
+                  interested_in_live_in:
+                    checked,
                 })
               }
             />
@@ -789,8 +1094,12 @@ function CandidateProfilePage() {
           <Button
             type="button"
             variant="accent"
-            disabled={saving}
-            onClick={() => void saveProfile()}
+            disabled={
+              saving
+            }
+            onClick={() =>
+              void saveProfile()
+            }
           >
             {saving
               ? "Saving…"
