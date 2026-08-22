@@ -9,6 +9,7 @@ import {
   MapPinned,
   Timer,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -16,7 +17,9 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/employers")({
   head: () => ({
     meta: [
-      { title: "Hire Hospitality Staff in Cornwall | Work in CRNWL" },
+      {
+        title: "Hire Hospitality Staff in Cornwall | Work in CRNWL",
+      },
       {
         name: "description",
         content:
@@ -33,6 +36,7 @@ export const Route = createFileRoute("/employers")({
       },
     ],
   }),
+
   component: EmployersPage,
 });
 
@@ -70,6 +74,7 @@ const membershipBenefits = [
 
 function FoundingEmployerCheckoutButton() {
   const { user, profile, loading } = useAuth();
+
   const [busy, setBusy] = useState(false);
 
   const startCheckout = async () => {
@@ -78,30 +83,44 @@ function FoundingEmployerCheckoutButton() {
       return;
     }
 
-    if (profile && profile.account_type !== "employer") {
-      toast.error("Please use an employer account to purchase membership.");
+    if (
+      profile &&
+      profile.account_type !== "employer"
+    ) {
+      toast.error(
+        "Please use an employer account to purchase membership.",
+      );
+
       return;
     }
 
     setBusy(true);
 
-    const { data, error } = await supabase.functions.invoke(
-      "create-checkout",
-      {
-        body: {},
-      },
-    );
+    const { data, error } =
+      await supabase.functions.invoke(
+        "create-checkout",
+        {
+          body: {},
+        },
+      );
 
     setBusy(false);
 
     if (error) {
       console.error(error);
-      toast.error("Could not start checkout. Please try again.");
+
+      toast.error(
+        "Could not start checkout. Please try again.",
+      );
+
       return;
     }
 
     if (!data?.url) {
-      toast.error("Stripe checkout could not be opened.");
+      toast.error(
+        "Stripe checkout could not be opened.",
+      );
+
       return;
     }
 
@@ -116,7 +135,9 @@ function FoundingEmployerCheckoutButton() {
       disabled={busy || loading}
       onClick={startCheckout}
     >
-      {busy ? "Opening checkout…" : "Join for £25/year"}
+      {busy
+        ? "Opening checkout…"
+        : "Join for £25/year"}
     </Button>
   );
 }
@@ -124,52 +145,75 @@ function FoundingEmployerCheckoutButton() {
 function EmployersPage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-14">
+      {/* HERO */}
+
       <section>
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">
           Built for Cornwall hospitality
         </p>
 
         <h1 className="mt-3 max-w-2xl font-display text-4xl font-extrabold leading-tight">
-          Hire hospitality staff who actually want to work in Cornwall.
+          Hire hospitality staff who actually
+          want to work in Cornwall.
         </h1>
 
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          Work in CRNWL is a jobs board built for Cornish pubs, hotels,
-          restaurants, cafés and event caterers -- from a single seasonal KP
-          to a full brigade.
+          Work in CRNWL is a jobs board built for
+          Cornish pubs, hotels, restaurants,
+          cafés and event caterers -- from a
+          single seasonal KP to a full brigade.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button asChild size="lg" variant="accent">
-            <Link to="/auth" search={{ mode: "employer" }}>
+          <Button
+            asChild
+            size="lg"
+            variant="accent"
+          >
+            <Link
+              to="/auth"
+              search={{
+                mode: "employer",
+              }}
+            >
               Create employer account
             </Link>
           </Button>
 
-          <Button asChild size="lg" variant="outline">
-            <Link to="/post-job">Post a job</Link>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+          >
+            <Link to="/post-job">
+              Post a job
+            </Link>
           </Button>
         </div>
       </section>
 
+      {/* BENEFITS */}
+
       <section className="mt-14 grid gap-4 sm:grid-cols-2">
-        {points.map((p) => (
+        {points.map((point) => (
           <div
-            key={p.title}
+            key={point.title}
             className="rounded-xl border border-border bg-card p-6"
           >
-            <p.icon className="size-5 text-primary" />
+            <point.icon className="size-5 text-primary" />
 
             <h2 className="mt-3 font-display text-lg font-semibold">
-              {p.title}
+              {point.title}
             </h2>
 
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-              {p.body}
+              {point.body}
             </p>
           </div>
         ))}
       </section>
+
+      {/* FOUNDING EMPLOYER PRICING */}
 
       <section className="mt-16">
         <div className="overflow-hidden rounded-2xl border border-border bg-sand">
@@ -181,35 +225,42 @@ function EmployersPage() {
               </span>
 
               <span className="text-sm font-medium text-muted-foreground">
-                Early access pricing
+                30-day launch offer
               </span>
             </div>
 
             <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-start">
               <div>
                 <h2 className="font-display text-3xl font-extrabold">
-                  Unlimited hiring. One simple annual price.
+                  Unlimited hiring. One simple
+                  annual price.
                 </h2>
 
                 <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-                  Become a CRNWL Founding Employer and advertise as many
-                  hospitality vacancies as your business needs throughout the
+                  Become a CRNWL Founding
+                  Employer and advertise as many
+                  hospitality vacancies as your
+                  business needs throughout the
                   year.
                 </p>
 
                 <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {membershipBenefits.map((benefit) => (
-                    <li
-                      key={benefit}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Check className="size-3.5" />
-                      </span>
+                  {membershipBenefits.map(
+                    (benefit) => (
+                      <li
+                        key={benefit}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <Check className="size-3.5" />
+                        </span>
 
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
+                        <span>
+                          {benefit}
+                        </span>
+                      </li>
+                    ),
+                  )}
                 </ul>
               </div>
 
@@ -222,11 +273,16 @@ function EmployersPage() {
                   <span className="font-display text-5xl font-extrabold">
                     £25
                   </span>
-                  <span className="text-muted-foreground"> / year</span>
+
+                  <span className="text-muted-foreground">
+                    {" "}
+                    / year
+                  </span>
                 </div>
 
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Unlimited listings for one employer account.
+                  Unlimited listings for one
+                  employer account.
                 </p>
 
                 <FoundingEmployerCheckoutButton />
@@ -236,23 +292,37 @@ function EmployersPage() {
         </div>
       </section>
 
+      {/* LAUNCH OFFER MESSAGE */}
+
       <section className="mt-8">
         <div className="rounded-2xl border border-dashed border-border bg-card p-6 sm:p-8">
           <p className="font-display text-xl font-bold">
-            We're building CRNWL with our first Cornish employers.
+            Join CRNWL as a Founding Employer.
           </p>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            During the early launch, selected hospitality businesses can use
-            CRNWL free while we gather feedback and build the strongest
-            possible local jobs platform. Founding Employer membership will
-            then be £25 per year.
+            We're building CRNWL alongside
+            Cornwall's hospitality businesses.
+            Join during our 30-day launch offer
+            and secure Founding Employer
+            membership for £25 per year, with
+            unlimited job listings and no
+            per-job fees.
+          </p>
+
+          <p className="mt-3 max-w-3xl text-sm font-medium text-primary">
+            The Founding Employer offer is
+            available for a limited time.
           </p>
         </div>
       </section>
 
+      {/* HOW IT WORKS */}
+
       <section className="mt-14 rounded-2xl border border-border bg-sand p-8">
-        <h2 className="font-display text-2xl font-bold">How it works</h2>
+        <h2 className="font-display text-2xl font-bold">
+          How it works
+        </h2>
 
         <ol className="mt-4 grid gap-6 text-sm sm:grid-cols-3">
           <li>
@@ -260,10 +330,13 @@ function EmployersPage() {
               1
             </span>
 
-            <p className="mt-1 font-medium">Create your account</p>
+            <p className="mt-1 font-medium">
+              Create your account
+            </p>
 
             <p className="mt-1 text-muted-foreground">
-              Sign up as an employer with your business name.
+              Sign up as an employer with your
+              business name.
             </p>
           </li>
 
@@ -272,10 +345,13 @@ function EmployersPage() {
               2
             </span>
 
-            <p className="mt-1 font-medium">Post your vacancies</p>
+            <p className="mt-1 font-medium">
+              Post your vacancies
+            </p>
 
             <p className="mt-1 text-muted-foreground">
-              Add the town, role, pay, shift pattern and anything else
+              Add the town, role, pay, shift
+              pattern and anything else
               candidates need to know.
             </p>
           </li>
@@ -285,11 +361,14 @@ function EmployersPage() {
               3
             </span>
 
-            <p className="mt-1 font-medium">Hire directly</p>
+            <p className="mt-1 font-medium">
+              Hire directly
+            </p>
 
             <p className="mt-1 text-muted-foreground">
-              Review applicants, contact candidates and find your next team
-              member.
+              Review applicants, view candidate
+              profiles, contact people directly
+              and find your next team member.
             </p>
           </li>
         </ol>
