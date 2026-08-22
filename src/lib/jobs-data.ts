@@ -42,7 +42,8 @@ export const JOB_TYPES = [
 export const APPLICATION_STATUSES = [
   { value: "new", label: "New" },
   { value: "reviewing", label: "Reviewing" },
-  { value: "interview", label: "Interview" },
+  { value: "contacted", label: "Contacted" },
+  { value: "interview", label: "Interview booked" },
   { value: "hired", label: "Hired" },
   { value: "rejected", label: "Not progressing" },
 ] as const;
@@ -56,19 +57,56 @@ export function formatPay(
   max: number | null,
   period: string | null,
 ): string {
-  if (min == null && max == null) return "Pay on application";
-  const unit = period === "year" ? "/yr" : period === "week" ? "/wk" : "/hr";
+  if (min == null && max == null) {
+    return "Pay on application";
+  }
+
+  const unit =
+    period === "year"
+      ? "/yr"
+      : period === "week"
+        ? "/wk"
+        : period === "month"
+          ? "/mo"
+          : period === "day"
+            ? "/day"
+            : "/hr";
+
   const fmt = (n: number) =>
-    period === "year" ? `£${Math.round(n).toLocaleString("en-GB")}` : `£${n.toFixed(2)}`;
-  if (min != null && max != null && min !== max) return `${fmt(min)} – ${fmt(max)}${unit}`;
+    period === "year"
+      ? `£${Math.round(n).toLocaleString("en-GB")}`
+      : `£${n.toFixed(2)}`;
+
+  if (
+    min != null &&
+    max != null &&
+    min !== max
+  ) {
+    return `${fmt(min)} – ${fmt(max)}${unit}`;
+  }
+
   return `${fmt((min ?? max) as number)}${unit}`;
 }
 
 export function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days < 1) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 30) return `${days} days ago`;
+  const diff =
+    Date.now() - new Date(iso).getTime();
+
+  const days = Math.floor(
+    diff / 86400000,
+  );
+
+  if (days < 1) {
+    return "Today";
+  }
+
+  if (days === 1) {
+    return "Yesterday";
+  }
+
+  if (days < 30) {
+    return `${days} days ago`;
+  }
+
   return `${Math.floor(days / 30)} mo ago`;
 }
