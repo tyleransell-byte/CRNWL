@@ -344,16 +344,14 @@ function CandidateProfile() {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {preferredLocations.map(
-                (location) => (
-                  <Badge
-                    key={location}
-                    variant="outline"
-                  >
-                    {location}
-                  </Badge>
-                ),
-              )}
+              {preferredLocations.map((location) => (
+                <Badge
+                  key={location}
+                  variant="outline"
+                >
+                  {location}
+                </Badge>
+              ))}
             </div>
           </section>
         )}
@@ -390,31 +388,6 @@ function CandidateProfile() {
                   ? "Yes"
                   : "No"}
               </p>
-            </div>
-
-            <div className="rounded-xl border border-border p-4">
-              <p className="text-xs text-muted-foreground">
-                Live-in roles
-              </p>
-
-              <p className="mt-1 text-sm font-medium">
-                {candidate.interested_in_live_in
-                  ? "Interested"
-                  : "Not currently interested"}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <div className="mt-8 rounded-xl border border-border bg-sand p-4 text-sm text-muted-foreground">
-          <Home className="mr-2 inline size-4 text-primary" />
-          This profile contains information the candidate has chosen to share
-          with employers. Their date of birth is kept private.
-        </div>
-      </div>
-    </div>
-  );
-}
             </div>
 
             <div className="rounded-xl border border-border p-4">
