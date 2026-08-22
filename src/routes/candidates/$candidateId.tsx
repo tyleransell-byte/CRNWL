@@ -9,6 +9,7 @@ import {
   Home,
   MapPin,
   UserRound,
+  Zap,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -214,6 +215,30 @@ function CandidateProfile() {
                 <MapPin className="size-4" />
                 {candidate.location}
               </p>
+            )}
+
+            {candidate.available_immediately && (
+              <div className="mt-3">
+                <Badge
+                  variant="secondary"
+                  className="inline-flex items-center gap-1.5"
+                >
+                  <Zap className="size-3.5" />
+                  Available immediately
+                </Badge>
+              </div>
+            )}
+
+            {!candidate.available_immediately && availableFrom && (
+              <div className="mt-3">
+                <Badge
+                  variant="outline"
+                  className="inline-flex items-center gap-1.5"
+                >
+                  <CalendarDays className="size-3.5" />
+                  Available from {availableFrom}
+                </Badge>
+              </div>
             )}
           </div>
         </div>
