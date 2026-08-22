@@ -1,11 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Anchor, ArrowLeft, KeyRound } from "lucide-react";
+import {
+  Anchor,
+  ArrowLeft,
+  KeyRound,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import {
   Tabs,
   TabsContent,
@@ -59,16 +64,21 @@ function AuthPage() {
   );
 
   const [accountType, setAccountType] =
-    useState<"candidate" | "employer">(
+    useState<
+      "candidate" | "employer"
+    >(
       mode === "employer"
         ? "employer"
         : "candidate",
     );
 
-  const [busy, setBusy] = useState(false);
-
-  const [forgotPassword, setForgotPassword] =
+  const [busy, setBusy] =
     useState(false);
+
+  const [
+    forgotPassword,
+    setForgotPassword,
+  ] = useState(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -195,9 +205,12 @@ function AuthPage() {
   ) => {
     event.preventDefault();
 
-    if (!form.email.trim()) {
+    const email =
+      form.email.trim();
+
+    if (!email) {
       toast.error(
-        "Enter your email address first.",
+        "Pop your email address in first.",
       );
       return;
     }
@@ -206,7 +219,7 @@ function AuthPage() {
 
     const { error } =
       await supabase.auth.resetPasswordForEmail(
-        form.email.trim(),
+        email,
         {
           redirectTo:
             `${window.location.origin}/reset-password`,
@@ -221,7 +234,7 @@ function AuthPage() {
     }
 
     toast.success(
-      "Password reset email sent -- check your inbox",
+      "Sorted -- check your inbox 📬",
     );
 
     setForgotPassword(false);
@@ -247,6 +260,8 @@ function AuthPage() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 py-14">
+      {/* HEADER */}
+
       <div className="text-center">
         <span className="mx-auto flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Anchor className="size-5" />
@@ -264,37 +279,43 @@ function AuthPage() {
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6">
         {forgotPassword ? (
+          /*
+           * FORGOT PASSWORD
+           */
           <div>
             <button
               type="button"
               onClick={() =>
                 setForgotPassword(false)
               }
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="size-4" />
+
               Back to sign in
             </button>
 
-            <div className="mt-5">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-secondary text-primary">
+            <div className="mt-6">
+              <span className="flex size-11 items-center justify-center rounded-xl bg-secondary text-primary">
                 <KeyRound className="size-5" />
               </span>
 
               <h2 className="mt-4 font-display text-2xl font-bold">
-                Forgot your password?
+                Password gone walkabout?
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Enter the email address linked to
-                your CRNWL account and we'll send
-                you a secure password reset link.
+                No dramas. Pop your email below
+                and we’ll send you a reset link
+                dreckly.
               </p>
             </div>
 
             <form
               className="mt-6 grid gap-4"
-              onSubmit={sendPasswordReset}
+              onSubmit={
+                sendPasswordReset
+              }
             >
               <div className="grid gap-2">
                 <Label htmlFor="reset-email">
@@ -306,12 +327,19 @@ function AuthPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={form.email}
-                  onChange={(event) =>
+                  placeholder="you@example.com"
+                  value={
+                    form.email
+                  }
+                  onChange={(
+                    event,
+                  ) =>
                     setForm({
                       ...form,
                       email:
-                        event.target.value,
+                        event
+                          .target
+                          .value,
                     })
                   }
                 />
@@ -324,15 +352,24 @@ function AuthPage() {
               >
                 {busy
                   ? "Sending…"
-                  : "Send reset link"}
+                  : "Get me back in"}
               </Button>
             </form>
+
+            <p className="mt-4 text-xs leading-5 text-muted-foreground">
+              We’ll send a secure link so you can
+              choose a new password. Have a peek
+              in spam too if it doesn’t arrive
+              straight away.
+            </p>
           </div>
         ) : (
           <>
             <Tabs
               value={tab}
-              onValueChange={setTab}
+              onValueChange={
+                setTab
+              }
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">
@@ -361,12 +398,18 @@ function AuthPage() {
                       type="email"
                       autoComplete="email"
                       required
-                      value={form.email}
-                      onChange={(event) =>
+                      value={
+                        form.email
+                      }
+                      onChange={(
+                        event,
+                      ) =>
                         setForm({
                           ...form,
                           email:
-                            event.target.value,
+                            event
+                              .target
+                              .value,
                         })
                       }
                     />
@@ -381,7 +424,9 @@ function AuthPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          setForgotPassword(true)
+                          setForgotPassword(
+                            true,
+                          )
                         }
                         className="text-xs font-medium text-primary hover:underline"
                       >
@@ -394,12 +439,18 @@ function AuthPage() {
                       type="password"
                       autoComplete="current-password"
                       required
-                      value={form.password}
-                      onChange={(event) =>
+                      value={
+                        form.password
+                      }
+                      onChange={(
+                        event,
+                      ) =>
                         setForm({
                           ...form,
                           password:
-                            event.target.value,
+                            event
+                              .target
+                              .value,
                         })
                       }
                     />
@@ -423,6 +474,8 @@ function AuthPage() {
                   className="mt-4 grid gap-4"
                   onSubmit={signUp}
                 >
+                  {/* ACCOUNT TYPE */}
+
                   <div className="grid grid-cols-2 gap-2">
                     {(
                       [
@@ -445,12 +498,15 @@ function AuthPage() {
                             : "border-border text-muted-foreground hover:bg-secondary/50"
                         }`}
                       >
-                        {type === "candidate"
+                        {type ===
+                        "candidate"
                           ? "I'm looking for work"
                           : "I'm hiring"}
                       </button>
                     ))}
                   </div>
+
+                  {/* NAMES */}
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="grid gap-2">
@@ -460,16 +516,21 @@ function AuthPage() {
 
                       <Input
                         id="su-first-name"
+                        type="text"
                         autoComplete="given-name"
                         required
                         value={
                           form.first_name
                         }
-                        onChange={(event) =>
+                        onChange={(
+                          event,
+                        ) =>
                           setForm({
                             ...form,
                             first_name:
-                              event.target.value,
+                              event
+                                .target
+                                .value,
                           })
                         }
                       />
@@ -482,21 +543,28 @@ function AuthPage() {
 
                       <Input
                         id="su-last-name"
+                        type="text"
                         autoComplete="family-name"
                         required
                         value={
                           form.last_name
                         }
-                        onChange={(event) =>
+                        onChange={(
+                          event,
+                        ) =>
                           setForm({
                             ...form,
                             last_name:
-                              event.target.value,
+                              event
+                                .target
+                                .value,
                           })
                         }
                       />
                     </div>
                   </div>
+
+                  {/* BUSINESS NAME */}
 
                   {accountType ===
                     "employer" && (
@@ -512,16 +580,22 @@ function AuthPage() {
                         value={
                           form.company_name
                         }
-                        onChange={(event) =>
+                        onChange={(
+                          event,
+                        ) =>
                           setForm({
                             ...form,
                             company_name:
-                              event.target.value,
+                              event
+                                .target
+                                .value,
                           })
                         }
                       />
                     </div>
                   )}
+
+                  {/* EMAIL */}
 
                   <div className="grid gap-2">
                     <Label htmlFor="su-email">
@@ -533,16 +607,24 @@ function AuthPage() {
                       type="email"
                       autoComplete="email"
                       required
-                      value={form.email}
-                      onChange={(event) =>
+                      value={
+                        form.email
+                      }
+                      onChange={(
+                        event,
+                      ) =>
                         setForm({
                           ...form,
                           email:
-                            event.target.value,
+                            event
+                              .target
+                              .value,
                         })
                       }
                     />
                   </div>
+
+                  {/* PASSWORD */}
 
                   <div className="grid gap-2">
                     <Label htmlFor="su-pass">
@@ -555,12 +637,18 @@ function AuthPage() {
                       autoComplete="new-password"
                       required
                       minLength={6}
-                      value={form.password}
-                      onChange={(event) =>
+                      value={
+                        form.password
+                      }
+                      onChange={(
+                        event,
+                      ) =>
                         setForm({
                           ...form,
                           password:
-                            event.target.value,
+                            event
+                              .target
+                              .value,
                         })
                       }
                     />
@@ -583,9 +671,13 @@ function AuthPage() {
               </TabsContent>
             </Tabs>
 
+            {/* GOOGLE */}
+
             <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
               <span className="h-px flex-1 bg-border" />
+
               <span>or</span>
+
               <span className="h-px flex-1 bg-border" />
             </div>
 
