@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   Briefcase,
   CalendarClock,
+  CheckCircle2,
   CreditCard,
   ExternalLink,
   Mail,
@@ -30,6 +31,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+
 import {
   APPLICATION_STATUSES,
   formatPay,
@@ -46,15 +48,6 @@ export const Route = createFileRoute("/dashboard")({
         name: "description",
         content:
           "Manage your Cornwall hospitality job listings and applications in one place on Work in CRNWL.",
-      },
-      {
-        property: "og:title",
-        content: "Your Dashboard | Work in CRNWL",
-      },
-      {
-        property: "og:description",
-        content:
-          "Manage listings and applications on Cornwall's hospitality jobs board.",
       },
     ],
   }),
@@ -113,10 +106,6 @@ function EmployerView({
 }) {
   const queryClient = useQueryClient();
 
-  /*
-   * MEMBERSHIP
-   */
-
   const {
     data: membership,
     isLoading: membershipLoading,
@@ -144,10 +133,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * STRIPE CHECKOUT
-   */
-
   const checkout = useMutation({
     mutationFn: async () => {
       const { data, error } =
@@ -173,18 +158,12 @@ function EmployerView({
       window.location.assign(url);
     },
 
-    onError: (error: Error) => {
-      console.error(error);
-
+    onError: () => {
       toast.error(
         "Could not start checkout. Please try again.",
       );
     },
   });
-
-  /*
-   * STRIPE CUSTOMER PORTAL
-   */
 
   const portal = useMutation({
     mutationFn: async () => {
@@ -211,18 +190,12 @@ function EmployerView({
       window.location.assign(url);
     },
 
-    onError: (error: Error) => {
-      console.error(error);
-
+    onError: () => {
       toast.error(
         "Could not open membership settings.",
       );
     },
   });
-
-  /*
-   * EMPLOYER JOBS + APPLICATIONS
-   */
 
   const {
     data: jobs,
@@ -259,10 +232,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * PUBLISH / HIDE JOB
-   */
-
   const togglePublish = useMutation({
     mutationFn: async ({
       id,
@@ -292,10 +261,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * DELETE JOB
-   */
-
   const removeJob = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -318,10 +283,6 @@ function EmployerView({
       toast.error(error.message);
     },
   });
-
-  /*
-   * APPLICATION STATUS
-   */
 
   const setStatus = useMutation({
     mutationFn: async ({
@@ -352,10 +313,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * MEMBERSHIP DISPLAY
-   */
-
   const membershipActive =
     membership?.membership_status === "active";
 
@@ -376,8 +333,6 @@ function EmployerView({
 
   return (
     <div className="mt-8 space-y-6">
-      {/* MEMBERSHIP CARD */}
-
       {membershipLoading ? (
         <Skeleton className="h-52 w-full rounded-2xl" />
       ) : membershipActive ? (
@@ -402,21 +357,16 @@ function EmployerView({
                     Your membership is still active.
                   </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    You've cancelled automatic renewal, but you can continue
-                    using CRNWL until the end of your paid membership.
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    You've cancelled automatic renewal but can continue using
+                    CRNWL until the end of your paid membership.
                   </p>
 
                   {expiryDate && (
-                    <p className="mt-3 text-sm font-medium">
+                    <p className="mt-3 font-medium">
                       Full access until {expiryDate}
                     </p>
                   )}
-
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    You can keep posting jobs and receiving applications until
-                    that date.
-                  </p>
                 </>
               ) : (
                 <>
@@ -424,16 +374,13 @@ function EmployerView({
                     Your membership is active
                   </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     You can post unlimited hospitality vacancies across CRNWL.
                   </p>
 
                   {expiryDate && (
                     <p className="mt-3 text-sm">
-                      <span className="font-medium">
-                        Current membership period:
-                      </span>{" "}
-                      until {expiryDate}
+                      Current membership period until {expiryDate}
                     </p>
                   )}
                 </>
@@ -444,9 +391,7 @@ function EmployerView({
                   type="button"
                   variant="outline"
                   disabled={portal.isPending}
-                  onClick={() =>
-                    portal.mutate()
-                  }
+                  onClick={() => portal.mutate()}
                 >
                   <Settings className="mr-2 size-4" />
 
@@ -457,10 +402,7 @@ function EmployerView({
                       : "Manage membership"}
                 </Button>
 
-                <Button
-                  asChild
-                  variant="accent"
-                >
+                <Button asChild variant="accent">
                   <Link to="/post-job">
                     Post a job
                   </Link>
@@ -468,12 +410,12 @@ function EmployerView({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-background px-6 py-5 text-center shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-background px-6 py-5 text-center">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Membership
               </p>
 
-              <p className="mt-2 font-display text-2xl font-extrabold text-primary">
+              <p className="mt-2 font-display text-2xl font-bold text-primary">
                 Active
               </p>
 
@@ -488,7 +430,7 @@ function EmployerView({
       ) : (
         <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-2xl">
+            <div>
               <div className="flex items-center gap-2">
                 <CreditCard className="size-6 text-primary" />
 
@@ -501,54 +443,24 @@ function EmployerView({
                 Unlimited job listings for £25 a year.
               </h2>
 
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Advertise as many hospitality vacancies as your business needs
-                for the next 12 months.
+              <p className="mt-2 text-sm text-muted-foreground">
+                Advertise as many hospitality vacancies as your business needs.
               </p>
-
-              <div className="mt-5 grid gap-2 text-sm">
-                <p>✓ Unlimited job listings</p>
-                <p>✓ Applications in one dashboard</p>
-                <p>✓ No per-job fees</p>
-                <p>✓ No agency commission</p>
-              </div>
             </div>
 
-            <div className="min-w-56 rounded-2xl border border-border bg-background p-6 text-center shadow-sm">
-              <p className="text-sm text-muted-foreground">
-                Founding rate
-              </p>
-
-              <div className="mt-2">
-                <span className="font-display text-4xl font-extrabold">
-                  £25
-                </span>
-
-                <span className="text-muted-foreground">
-                  {" "}
-                  / year
-                </span>
-              </div>
-
-              <Button
-                type="button"
-                variant="accent"
-                className="mt-5 w-full"
-                disabled={checkout.isPending}
-                onClick={() =>
-                  checkout.mutate()
-                }
-              >
-                {checkout.isPending
-                  ? "Opening checkout…"
-                  : "Join for £25/year"}
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="accent"
+              disabled={checkout.isPending}
+              onClick={() => checkout.mutate()}
+            >
+              {checkout.isPending
+                ? "Opening checkout…"
+                : "Join for £25/year"}
+            </Button>
           </div>
         </div>
       )}
-
-      {/* JOB LIST */}
 
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
@@ -560,7 +472,7 @@ function EmployerView({
             No listings yet
           </p>
 
-          {membershipActive ? (
+          {membershipActive && (
             <Button
               asChild
               className="mt-4"
@@ -570,10 +482,6 @@ function EmployerView({
                 Post your first job
               </Link>
             </Button>
-          ) : (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Activate your employer membership above to start posting jobs.
-            </p>
           )}
         </div>
       ) : (
@@ -617,8 +525,7 @@ function EmployerView({
                     </h2>
 
                     <p className="text-sm text-muted-foreground">
-                      {job.location} ·{" "}
-                      {job.job_type} ·{" "}
+                      {job.location} · {job.job_type} ·{" "}
                       {formatPay(
                         job.pay_min,
                         job.pay_max,
@@ -636,7 +543,6 @@ function EmployerView({
 
                     <Switch
                       checked={job.is_published}
-                      aria-label="Published"
                       onCheckedChange={(value) =>
                         togglePublish.mutate({
                           id: job.id,
@@ -645,12 +551,7 @@ function EmployerView({
                       }
                     />
 
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      aria-label="View listing"
-                    >
+                    <Button asChild variant="ghost" size="icon">
                       <Link
                         to="/jobs/$jobId"
                         params={{
@@ -664,16 +565,13 @@ function EmployerView({
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label="Delete listing"
                       onClick={() => {
                         if (
                           confirm(
                             "Delete this listing and its applications?",
                           )
                         ) {
-                          removeJob.mutate(
-                            job.id,
-                          );
+                          removeJob.mutate(job.id);
                         }
                       }}
                     >
@@ -684,8 +582,7 @@ function EmployerView({
 
                 <div className="mt-5 border-t border-border pt-4">
                   <p className="text-sm font-semibold">
-                    {applications.length}{" "}
-                    application
+                    {applications.length} application
                     {applications.length === 1
                       ? ""
                       : "s"}
@@ -704,7 +601,7 @@ function EmployerView({
                                 {application.full_name}
                               </p>
 
-                              <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              <p className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
                                 <span className="inline-flex items-center gap-1">
                                   <Mail className="size-3" />
                                   {application.email}
@@ -752,10 +649,7 @@ function EmployerView({
                                 })
                               }
                             >
-                              <SelectTrigger
-                                className="w-44"
-                                aria-label="Application status"
-                              >
+                              <SelectTrigger className="w-44">
                                 <SelectValue />
                               </SelectTrigger>
 
@@ -775,25 +669,12 @@ function EmployerView({
                           </div>
 
                           {application.cover_note && (
-                            <div className="mt-4 rounded-lg bg-secondary/40 p-4">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Candidate note
-                              </p>
-
-                              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                                {application.cover_note}
-                              </p>
-                            </div>
+                            <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
+                              {application.cover_note}
+                            </p>
                           )}
                         </div>
                       ),
-                    )}
-
-                    {applications.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        No applications yet -- share the listing link to get
-                        things moving.
-                      </p>
                     )}
                   </div>
                 </div>
@@ -811,9 +692,50 @@ function CandidateView({
 }: {
   userId: string;
 }) {
+  /*
+   * CANDIDATE PROFILE
+   */
+
+  const {
+    data: candidateProfile,
+    isLoading: profileLoading,
+  } = useQuery({
+    queryKey: ["candidate-profile-completion", userId],
+
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(
+          `
+          full_name,
+          phone,
+          location,
+          bio,
+          "current_role",
+          years_experience,
+          experience_tags,
+          available_immediately,
+          available_from,
+          work_preferences,
+          preferred_locations
+          `,
+        )
+        .eq("id", userId)
+        .single();
+
+      if (error) throw error;
+
+      return data;
+    },
+  });
+
+  /*
+   * APPLICATIONS
+   */
+
   const {
     data: applications,
-    isLoading,
+    isLoading: applicationsLoading,
   } = useQuery({
     queryKey: ["my-applications", userId],
 
@@ -844,39 +766,169 @@ function CandidateView({
     },
   });
 
-  if (isLoading) {
+  if (profileLoading || applicationsLoading) {
     return (
       <Skeleton className="mt-8 h-40 w-full" />
     );
   }
 
+  /*
+   * PROFILE COMPLETION
+   */
+
+  const profileChecks = [
+    {
+      label: "full name",
+      complete:
+        !!candidateProfile?.full_name?.trim(),
+    },
+    {
+      label: "location",
+      complete:
+        !!candidateProfile?.location?.trim(),
+    },
+    {
+      label: "bio",
+      complete:
+        !!candidateProfile?.bio?.trim(),
+    },
+    {
+      label: "current or recent role",
+      complete:
+        !!candidateProfile?.current_role?.trim(),
+    },
+    {
+      label: "years of experience",
+      complete:
+        !!candidateProfile?.years_experience,
+    },
+    {
+      label: "experience tags",
+      complete:
+        (candidateProfile?.experience_tags?.length ??
+          0) > 0,
+    },
+    {
+      label: "availability",
+      complete:
+        candidateProfile?.available_immediately ===
+          true ||
+        !!candidateProfile?.available_from,
+    },
+    {
+      label: "work preferences",
+      complete:
+        (candidateProfile?.work_preferences
+          ?.length ?? 0) > 0,
+    },
+    {
+      label: "preferred locations",
+      complete:
+        (candidateProfile?.preferred_locations
+          ?.length ?? 0) > 0,
+    },
+    {
+      label: "phone number",
+      complete:
+        !!candidateProfile?.phone?.trim(),
+    },
+  ];
+
+  const completedItems =
+    profileChecks.filter(
+      (item) => item.complete,
+    ).length;
+
+  const profilePercentage = Math.round(
+    (completedItems /
+      profileChecks.length) *
+      100,
+  );
+
+  const missingItems = profileChecks
+    .filter((item) => !item.complete)
+    .map((item) => item.label);
+
   return (
     <div className="mt-8 space-y-6">
-      {/* CANDIDATE PROFILE CARD */}
+      {/* PROFILE COMPLETION */}
 
-      <div className="rounded-2xl border border-border bg-sand p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+      <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1">
             <div className="flex items-center gap-2">
-              <UserRound className="size-5 text-primary" />
+              {profilePercentage === 100 ? (
+                <CheckCircle2 className="size-6 text-primary" />
+              ) : (
+                <UserRound className="size-6 text-primary" />
+              )}
 
               <p className="font-display text-xl font-bold">
                 Your candidate profile
               </p>
             </div>
 
-            <p className="mt-2 text-sm text-muted-foreground">
-              Keep your experience, availability and work preferences up to
-              date so employers can learn more about you.
-            </p>
+            <div className="mt-4 flex items-end justify-between gap-4">
+              <p className="text-sm font-medium">
+                {profilePercentage === 100
+                  ? "Profile complete"
+                  : `${profilePercentage}% complete`}
+              </p>
+
+              <span className="text-sm font-bold text-primary">
+                {profilePercentage}%
+              </span>
+            </div>
+
+            {/* PROGRESS BAR */}
+
+            <div className="mt-2 h-3 overflow-hidden rounded-full bg-background">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{
+                  width: `${profilePercentage}%`,
+                }}
+              />
+            </div>
+
+            {profilePercentage === 100 ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                Your profile is complete and ready
+                for employers to view when you
+                apply.
+              </p>
+            ) : (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Add a little more to help
+                  employers understand who you
+                  are.
+                </p>
+
+                <p className="mt-2 text-sm">
+                  <span className="font-medium">
+                    Still to add:
+                  </span>{" "}
+                  {missingItems
+                    .slice(0, 3)
+                    .join(", ")}
+                  {missingItems.length > 3
+                    ? ` + ${missingItems.length - 3} more`
+                    : ""}
+                </p>
+              </div>
+            )}
           </div>
 
           <Button
             asChild
             variant="accent"
+            className="shrink-0"
           >
             <Link to="/profile">
-              Edit My Profile
+              {profilePercentage === 100
+                ? "Edit My Profile"
+                : "Complete My Profile"}
             </Link>
           </Button>
         </div>
@@ -914,7 +966,8 @@ function CandidateView({
                 (status) =>
                   status.value ===
                   application.status,
-              )?.label ?? application.status;
+              )?.label ??
+              application.status;
 
             return (
               <div
