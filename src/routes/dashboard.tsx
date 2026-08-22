@@ -106,6 +106,10 @@ function EmployerView({
 }) {
   const queryClient = useQueryClient();
 
+  /*
+   * MEMBERSHIP
+   */
+
   const {
     data: membership,
     isLoading: membershipLoading,
@@ -132,6 +136,10 @@ function EmployerView({
       return data;
     },
   });
+
+  /*
+   * CHECKOUT
+   */
 
   const checkout = useMutation({
     mutationFn: async () => {
@@ -165,6 +173,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * CUSTOMER PORTAL
+   */
+
   const portal = useMutation({
     mutationFn: async () => {
       const { data, error } =
@@ -196,6 +208,10 @@ function EmployerView({
       );
     },
   });
+
+  /*
+   * EMPLOYER JOBS + APPLICATIONS
+   */
 
   const {
     data: jobs,
@@ -232,6 +248,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * PUBLISH / HIDE
+   */
+
   const togglePublish = useMutation({
     mutationFn: async ({
       id,
@@ -261,6 +281,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * DELETE JOB
+   */
+
   const removeJob = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -283,6 +307,10 @@ function EmployerView({
       toast.error(error.message);
     },
   });
+
+  /*
+   * APPLICATION STATUS
+   */
 
   const setStatus = useMutation({
     mutationFn: async ({
@@ -313,6 +341,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * MEMBERSHIP DISPLAY
+   */
+
   const membershipActive =
     membership?.membership_status === "active";
 
@@ -333,6 +365,8 @@ function EmployerView({
 
   return (
     <div className="mt-8 space-y-6">
+      {/* MEMBERSHIP */}
+
       {membershipLoading ? (
         <Skeleton className="h-52 w-full rounded-2xl" />
       ) : membershipActive ? (
@@ -462,6 +496,8 @@ function EmployerView({
         </div>
       )}
 
+      {/* JOBS */}
+
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : !jobs?.length ? (
@@ -516,8 +552,10 @@ function EmployerView({
             return (
               <div
                 key={job.id}
-                className="rounded-2xl border border-border bg-card p-6"
+                className="rounded-2xl border border-border bg-card p-5 sm:p-6"
               >
+                {/* JOB HEADER */}
+
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="font-display text-xl font-semibold">
@@ -555,6 +593,7 @@ function EmployerView({
                       asChild
                       variant="ghost"
                       size="icon"
+                      aria-label="View listing"
                     >
                       <Link
                         to="/jobs/$jobId"
@@ -569,6 +608,7 @@ function EmployerView({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Delete listing"
                       onClick={() => {
                         if (
                           confirm(
@@ -583,6 +623,8 @@ function EmployerView({
                     </Button>
                   </div>
                 </div>
+
+                {/* APPLICATIONS */}
 
                 <div className="mt-5 border-t border-border pt-4">
                   <p className="text-sm font-semibold">
@@ -614,35 +656,47 @@ function EmployerView({
                       return (
                         <div
                           key={application.id}
-                          className="rounded-lg border border-border bg-background p-4"
+                          className="overflow-hidden rounded-xl border border-border bg-background p-4"
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-4">
+                          {/*
+                           * MOBILE FIX:
+                           * Stack candidate details and status vertically
+                           * on small screens.
+                           */}
+
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0 flex-1">
                               <p className="font-medium">
                                 {application.full_name}
                               </p>
 
-                              <p className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                                <span className="inline-flex items-center gap-1">
-                                  <Mail className="size-3" />
-                                  {application.email}
-                                </span>
+                              <div className="mt-1 space-y-1 text-xs text-muted-foreground">
+                                <div className="flex min-w-0 items-start gap-1.5">
+                                  <Mail className="mt-0.5 size-3 shrink-0" />
+
+                                  <span className="min-w-0 break-all">
+                                    {application.email}
+                                  </span>
+                                </div>
 
                                 {application.phone && (
-                                  <span className="inline-flex items-center gap-1">
-                                    <Phone className="size-3" />
-                                    {application.phone}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <Phone className="size-3 shrink-0" />
+
+                                    <span>
+                                      {application.phone}
+                                    </span>
+                                  </div>
                                 )}
 
-                                <span>
+                                <p>
                                   {timeAgo(
                                     application.created_at,
                                   )}
-                                </span>
-                              </p>
+                                </p>
+                              </div>
 
-                              {/* CONTACT BUTTONS */}
+                              {/* CONTACT ACTIONS */}
 
                               <div className="mt-4 flex flex-wrap gap-2">
                                 <Button
@@ -688,33 +742,43 @@ function EmployerView({
                               </div>
                             </div>
 
-                            <Select
-                              value={application.status}
-                              onValueChange={(status) =>
-                                setStatus.mutate({
-                                  id: application.id,
-                                  status,
-                                })
-                              }
-                            >
-                              <SelectTrigger className="w-44">
-                                <SelectValue />
-                              </SelectTrigger>
+                            {/* STATUS */}
 
-                              <SelectContent>
-                                {APPLICATION_STATUSES.map(
-                                  (status) => (
-                                    <SelectItem
-                                      key={status.value}
-                                      value={status.value}
-                                    >
-                                      {status.label}
-                                    </SelectItem>
-                                  ),
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <div className="w-full sm:w-44 sm:shrink-0">
+                              <p className="mb-1.5 text-xs font-medium text-muted-foreground sm:hidden">
+                                Application status
+                              </p>
+
+                              <Select
+                                value={application.status}
+                                onValueChange={(status) =>
+                                  setStatus.mutate({
+                                    id: application.id,
+                                    status,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                  {APPLICATION_STATUSES.map(
+                                    (status) => (
+                                      <SelectItem
+                                        key={status.value}
+                                        value={status.value}
+                                      >
+                                        {status.label}
+                                      </SelectItem>
+                                    ),
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
+
+                          {/* COVER NOTE */}
 
                           {application.cover_note && (
                             <div className="mt-4 rounded-lg bg-secondary/40 p-4">
@@ -753,6 +817,10 @@ function CandidateView({
 }: {
   userId: string;
 }) {
+  /*
+   * PROFILE COMPLETION
+   */
+
   const {
     data: candidateProfile,
     isLoading: profileLoading,
@@ -785,6 +853,10 @@ function CandidateView({
       return data;
     },
   });
+
+  /*
+   * APPLICATIONS
+   */
 
   const {
     data: applications,
@@ -819,7 +891,10 @@ function CandidateView({
     },
   });
 
-  if (profileLoading || applicationsLoading) {
+  if (
+    profileLoading ||
+    applicationsLoading
+  ) {
     return (
       <Skeleton className="mt-8 h-40 w-full" />
     );
@@ -900,6 +975,8 @@ function CandidateView({
 
   return (
     <div className="mt-8 space-y-6">
+      {/* PROFILE COMPLETION */}
+
       <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
@@ -976,6 +1053,8 @@ function CandidateView({
         </div>
       </div>
 
+      {/* CANDIDATE APPLICATIONS */}
+
       {!applications?.length ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center">
           <Briefcase className="mx-auto size-6 text-muted-foreground" />
@@ -984,7 +1063,10 @@ function CandidateView({
             You haven't applied to anything yet
           </p>
 
-          <Button asChild className="mt-4">
+          <Button
+            asChild
+            className="mt-4"
+          >
             <Link to="/jobs">
               Browse jobs
             </Link>
