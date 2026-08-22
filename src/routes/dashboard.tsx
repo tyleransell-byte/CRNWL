@@ -551,7 +551,11 @@ function EmployerView({
                       }
                     />
 
-                    <Button asChild variant="ghost" size="icon">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                    >
                       <Link
                         to="/jobs/$jobId"
                         params={{
@@ -589,14 +593,31 @@ function EmployerView({
                   </p>
 
                   <div className="mt-3 space-y-3">
-                    {applications.map(
-                      (application) => (
+                    {applications.map((application) => {
+                      const emailSubject =
+                        `Your application for ${job.title} via Work in CRNWL`;
+
+                      const emailBody =
+                        `Hi ${application.full_name},\n\n` +
+                        `Thank you for applying for our ${job.title} vacancy through Work in CRNWL.\n\n`;
+
+                      const emailHref =
+                        `mailto:${application.email}` +
+                        `?subject=${encodeURIComponent(emailSubject)}` +
+                        `&body=${encodeURIComponent(emailBody)}`;
+
+                      const phoneHref =
+                        application.phone
+                          ? `tel:${application.phone.replace(/\s+/g, "")}`
+                          : null;
+
+                      return (
                         <div
                           key={application.id}
                           className="rounded-lg border border-border bg-background p-4"
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div className="min-w-0 flex-1">
                               <p className="font-medium">
                                 {application.full_name}
                               </p>
@@ -621,23 +642,50 @@ function EmployerView({
                                 </span>
                               </p>
 
-                              <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                                className="mt-3"
-                              >
-                                <Link
-                                  to="/candidates/$candidateId"
-                                  params={{
-                                    candidateId:
-                                      application.candidate_id,
-                                  }}
+                              {/* CONTACT BUTTONS */}
+
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <Button
+                                  asChild
+                                  variant="accent"
+                                  size="sm"
                                 >
-                                  <UserRound className="mr-2 size-4" />
-                                  View Candidate Profile
-                                </Link>
-                              </Button>
+                                  <a href={emailHref}>
+                                    <Mail className="mr-2 size-4" />
+                                    Email candidate
+                                  </a>
+                                </Button>
+
+                                {phoneHref && (
+                                  <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                  >
+                                    <a href={phoneHref}>
+                                      <Phone className="mr-2 size-4" />
+                                      Call candidate
+                                    </a>
+                                  </Button>
+                                )}
+
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Link
+                                    to="/candidates/$candidateId"
+                                    params={{
+                                      candidateId:
+                                        application.candidate_id,
+                                    }}
+                                  >
+                                    <UserRound className="mr-2 size-4" />
+                                    View profile
+                                  </Link>
+                                </Button>
+                              </div>
                             </div>
 
                             <Select
@@ -669,12 +717,25 @@ function EmployerView({
                           </div>
 
                           {application.cover_note && (
-                            <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
-                              {application.cover_note}
-                            </p>
+                            <div className="mt-4 rounded-lg bg-secondary/40 p-4">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Candidate note
+                              </p>
+
+                              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                                {application.cover_note}
+                              </p>
+                            </div>
                           )}
                         </div>
-                      ),
+                      );
+                    })}
+
+                    {applications.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No applications yet -- share the listing link to get
+                        things moving.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -692,10 +753,6 @@ function CandidateView({
 }: {
   userId: string;
 }) {
-  /*
-   * CANDIDATE PROFILE
-   */
-
   const {
     data: candidateProfile,
     isLoading: profileLoading,
@@ -728,10 +785,6 @@ function CandidateView({
       return data;
     },
   });
-
-  /*
-   * APPLICATIONS
-   */
 
   const {
     data: applications,
@@ -771,10 +824,6 @@ function CandidateView({
       <Skeleton className="mt-8 h-40 w-full" />
     );
   }
-
-  /*
-   * PROFILE COMPLETION
-   */
 
   const profileChecks = [
     {
@@ -851,8 +900,6 @@ function CandidateView({
 
   return (
     <div className="mt-8 space-y-6">
-      {/* PROFILE COMPLETION */}
-
       <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
@@ -880,8 +927,6 @@ function CandidateView({
               </span>
             </div>
 
-            {/* PROGRESS BAR */}
-
             <div className="mt-2 h-3 overflow-hidden rounded-full bg-background">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-500"
@@ -893,16 +938,13 @@ function CandidateView({
 
             {profilePercentage === 100 ? (
               <p className="mt-4 text-sm text-muted-foreground">
-                Your profile is complete and ready
-                for employers to view when you
-                apply.
+                Your profile is complete and ready for employers to view when
+                you apply.
               </p>
             ) : (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Add a little more to help
-                  employers understand who you
-                  are.
+                  Add a little more to help employers understand who you are.
                 </p>
 
                 <p className="mt-2 text-sm">
@@ -933,8 +975,6 @@ function CandidateView({
           </Button>
         </div>
       </div>
-
-      {/* APPLICATIONS */}
 
       {!applications?.length ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center">
