@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Anchor } from "lucide-react";
+import { Anchor, ArrowLeft, KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,16 +41,6 @@ export const Route = createFileRoute("/auth")({
         content:
           "Sign in to apply for Cornish hospitality jobs, or create an employer account to post vacancies.",
       },
-      {
-        property: "og:title",
-        content:
-          "Sign In or Create an Account | Work in CRNWL",
-      },
-      {
-        property: "og:description",
-        content:
-          "Candidate and employer accounts for Cornwall's hospitality jobs board.",
-      },
     ],
   }),
 
@@ -69,15 +59,15 @@ function AuthPage() {
   );
 
   const [accountType, setAccountType] =
-    useState<
-      "candidate" | "employer"
-    >(
+    useState<"candidate" | "employer">(
       mode === "employer"
         ? "employer"
         : "candidate",
     );
 
-  const [busy, setBusy] =
+  const [busy, setBusy] = useState(false);
+
+  const [forgotPassword, setForgotPassword] =
     useState(false);
 
   const [form, setForm] = useState({
@@ -97,9 +87,9 @@ function AuthPage() {
   }, [user, navigate]);
 
   const signIn = async (
-    e: React.FormEvent,
+    event: React.FormEvent,
   ) => {
-    e.preventDefault();
+    event.preventDefault();
 
     setBusy(true);
 
@@ -124,9 +114,9 @@ function AuthPage() {
   };
 
   const signUp = async (
-    e: React.FormEvent,
+    event: React.FormEvent,
   ) => {
-    e.preventDefault();
+    event.preventDefault();
 
     const firstName =
       form.first_name.trim();
@@ -151,6 +141,16 @@ function AuthPage() {
       return;
     }
 
+    if (
+      accountType === "employer" &&
+      !form.company_name.trim()
+    ) {
+      toast.error(
+        "Please enter your business name.",
+      );
+      return;
+    }
+
     setBusy(true);
 
     const { error } =
@@ -163,17 +163,10 @@ function AuthPage() {
             `${window.location.origin}/dashboard`,
 
           data: {
-            first_name:
-              firstName,
-
-            last_name:
-              lastName,
-
-            full_name:
-              fullName,
-
-            account_type:
-              accountType,
+            first_name: firstName,
+            last_name: lastName,
+            full_name: fullName,
+            account_type: accountType,
 
             company_name:
               accountType === "employer"
@@ -193,6 +186,45 @@ function AuthPage() {
     toast.success(
       "Account created -- check your email to confirm your account",
     );
+
+    setTab("signin");
+  };
+
+  const sendPasswordReset = async (
+    event: React.FormEvent,
+  ) => {
+    event.preventDefault();
+
+    if (!form.email.trim()) {
+      toast.error(
+        "Enter your email address first.",
+      );
+      return;
+    }
+
+    setBusy(true);
+
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(
+        form.email.trim(),
+        {
+          redirectTo:
+            `${window.location.origin}/reset-password`,
+        },
+      );
+
+    setBusy(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success(
+      "Password reset email sent -- check your inbox",
+    );
+
+    setForgotPassword(false);
   };
 
   const google = async () => {
@@ -231,249 +263,58 @@ function AuthPage() {
       </div>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-        <Tabs
-          value={tab}
-          onValueChange={setTab}
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">
-              Sign in
-            </TabsTrigger>
+        {forgotPassword ? (
+          <div>
+            <button
+              type="button"
+              onClick={() =>
+                setForgotPassword(false)
+              }
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="size-4" />
+              Back to sign in
+            </button>
 
-            <TabsTrigger value="signup">
-              Create account
-            </TabsTrigger>
-          </TabsList>
+            <div className="mt-5">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-secondary text-primary">
+                <KeyRound className="size-5" />
+              </span>
 
-          {/* SIGN IN */}
+              <h2 className="mt-4 font-display text-2xl font-bold">
+                Forgot your password?
+              </h2>
 
-          <TabsContent value="signin">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Enter the email address linked to
+                your CRNWL account and we'll send
+                you a secure password reset link.
+              </p>
+            </div>
+
             <form
-              className="mt-4 grid gap-4"
-              onSubmit={signIn}
+              className="mt-6 grid gap-4"
+              onSubmit={sendPasswordReset}
             >
               <div className="grid gap-2">
-                <Label htmlFor="si-email">
+                <Label htmlFor="reset-email">
                   Email
                 </Label>
 
                 <Input
-                  id="si-email"
+                  id="reset-email"
                   type="email"
                   autoComplete="email"
                   required
                   value={form.email}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     setForm({
                       ...form,
                       email:
-                        e.target.value,
+                        event.target.value,
                     })
                   }
                 />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="si-pass">
-                  Password
-                </Label>
-
-                <Input
-                  id="si-pass"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={
-                    form.password
-                  }
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      password:
-                        e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={busy}
-              >
-                {busy
-                  ? "Signing in…"
-                  : "Sign in"}
-              </Button>
-            </form>
-          </TabsContent>
-
-          {/* CREATE ACCOUNT */}
-
-          <TabsContent value="signup">
-            <form
-              className="mt-4 grid gap-4"
-              onSubmit={signUp}
-            >
-              {/* ACCOUNT TYPE */}
-
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    "candidate",
-                    "employer",
-                  ] as const
-                ).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() =>
-                      setAccountType(
-                        type,
-                      )
-                    }
-                    className={`rounded-md border px-3 py-3 text-sm font-medium transition-colors ${
-                      accountType ===
-                      type
-                        ? "border-primary bg-secondary text-secondary-foreground"
-                        : "border-border text-muted-foreground hover:bg-secondary/50"
-                    }`}
-                  >
-                    {type ===
-                    "candidate"
-                      ? "I'm looking for work"
-                      : "I'm hiring"}
-                  </button>
-                ))}
-              </div>
-
-              {/* FIRST + LAST NAME */}
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="su-first-name">
-                    First name
-                  </Label>
-
-                  <Input
-                    id="su-first-name"
-                    type="text"
-                    autoComplete="given-name"
-                    required
-                    value={
-                      form.first_name
-                    }
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        first_name:
-                          e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="su-last-name">
-                    Last name
-                  </Label>
-
-                  <Input
-                    id="su-last-name"
-                    type="text"
-                    autoComplete="family-name"
-                    required
-                    value={
-                      form.last_name
-                    }
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        last_name:
-                          e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* BUSINESS NAME */}
-
-              {accountType ===
-                "employer" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="su-company">
-                    Business name
-                  </Label>
-
-                  <Input
-                    id="su-company"
-                    required
-                    placeholder="The Harbour Inn"
-                    value={
-                      form.company_name
-                    }
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        company_name:
-                          e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              )}
-
-              {/* EMAIL */}
-
-              <div className="grid gap-2">
-                <Label htmlFor="su-email">
-                  Email
-                </Label>
-
-                <Input
-                  id="su-email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      email:
-                        e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              {/* PASSWORD */}
-
-              <div className="grid gap-2">
-                <Label htmlFor="su-pass">
-                  Password
-                </Label>
-
-                <Input
-                  id="su-pass"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={6}
-                  value={
-                    form.password
-                  }
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      password:
-                        e.target.value,
-                    })
-                  }
-                />
-
-                <p className="text-xs text-muted-foreground">
-                  Minimum 6 characters.
-                </p>
               </div>
 
               <Button
@@ -482,31 +323,282 @@ function AuthPage() {
                 disabled={busy}
               >
                 {busy
-                  ? "Creating…"
-                  : "Create account"}
+                  ? "Sending…"
+                  : "Send reset link"}
               </Button>
             </form>
-          </TabsContent>
-        </Tabs>
+          </div>
+        ) : (
+          <>
+            <Tabs
+              value={tab}
+              onValueChange={setTab}
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">
+                  Sign in
+                </TabsTrigger>
 
-        {/* GOOGLE */}
+                <TabsTrigger value="signup">
+                  Create account
+                </TabsTrigger>
+              </TabsList>
 
-        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />
+              {/* SIGN IN */}
 
-          <span>or</span>
+              <TabsContent value="signin">
+                <form
+                  className="mt-4 grid gap-4"
+                  onSubmit={signIn}
+                >
+                  <div className="grid gap-2">
+                    <Label htmlFor="si-email">
+                      Email
+                    </Label>
 
-          <span className="h-px flex-1 bg-border" />
-        </div>
+                    <Input
+                      id="si-email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={form.email}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          email:
+                            event.target.value,
+                        })
+                      }
+                    />
+                  </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={google}
-        >
-          Continue with Google
-        </Button>
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="si-pass">
+                        Password
+                      </Label>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForgotPassword(true)
+                        }
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+
+                    <Input
+                      id="si-pass"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={form.password}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          password:
+                            event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={busy}
+                  >
+                    {busy
+                      ? "Signing in…"
+                      : "Sign in"}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              {/* CREATE ACCOUNT */}
+
+              <TabsContent value="signup">
+                <form
+                  className="mt-4 grid gap-4"
+                  onSubmit={signUp}
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        "candidate",
+                        "employer",
+                      ] as const
+                    ).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() =>
+                          setAccountType(
+                            type,
+                          )
+                        }
+                        className={`rounded-md border px-3 py-3 text-sm font-medium transition-colors ${
+                          accountType ===
+                          type
+                            ? "border-primary bg-secondary text-secondary-foreground"
+                            : "border-border text-muted-foreground hover:bg-secondary/50"
+                        }`}
+                      >
+                        {type === "candidate"
+                          ? "I'm looking for work"
+                          : "I'm hiring"}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="su-first-name">
+                        First name
+                      </Label>
+
+                      <Input
+                        id="su-first-name"
+                        autoComplete="given-name"
+                        required
+                        value={
+                          form.first_name
+                        }
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            first_name:
+                              event.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="su-last-name">
+                        Last name
+                      </Label>
+
+                      <Input
+                        id="su-last-name"
+                        autoComplete="family-name"
+                        required
+                        value={
+                          form.last_name
+                        }
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            last_name:
+                              event.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {accountType ===
+                    "employer" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="su-company">
+                        Business name
+                      </Label>
+
+                      <Input
+                        id="su-company"
+                        required
+                        placeholder="The Harbour Inn"
+                        value={
+                          form.company_name
+                        }
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            company_name:
+                              event.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="su-email">
+                      Email
+                    </Label>
+
+                    <Input
+                      id="su-email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={form.email}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          email:
+                            event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="su-pass">
+                      Password
+                    </Label>
+
+                    <Input
+                      id="su-pass"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={6}
+                      value={form.password}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          password:
+                            event.target.value,
+                        })
+                      }
+                    />
+
+                    <p className="text-xs text-muted-foreground">
+                      Minimum 6 characters.
+                    </p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="accent"
+                    disabled={busy}
+                  >
+                    {busy
+                      ? "Creating…"
+                      : "Create account"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+
+            <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              <span>or</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={google}
+            >
+              Continue with Google
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
