@@ -20,6 +20,7 @@ export function SiteHeader() {
   { to: "/employers", label: "For employers" },
   { to: "/about", label: "About" },
   { to: "/founder", label: "Our Story" },
+  { to: "/suggestions", label: "Suggestions" },
 ] as const;
 
   return (
