@@ -12,6 +12,7 @@ import {
   Phone,
   Settings,
   Trash2,
+  UserRound,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -112,10 +113,6 @@ function EmployerView({
 }) {
   const queryClient = useQueryClient();
 
-  /*
-   * MEMBERSHIP
-   */
-
   const {
     data: membership,
     isLoading: membershipLoading,
@@ -142,10 +139,6 @@ function EmployerView({
       return data;
     },
   });
-
-  /*
-   * STRIPE CHECKOUT
-   */
 
   const checkout = useMutation({
     mutationFn: async () => {
@@ -174,16 +167,11 @@ function EmployerView({
 
     onError: (error: Error) => {
       console.error(error);
-
       toast.error(
         "Could not start checkout. Please try again.",
       );
     },
   });
-
-  /*
-   * STRIPE CUSTOMER PORTAL
-   */
 
   const portal = useMutation({
     mutationFn: async () => {
@@ -212,16 +200,11 @@ function EmployerView({
 
     onError: (error: Error) => {
       console.error(error);
-
       toast.error(
         "Could not open membership settings.",
       );
     },
   });
-
-  /*
-   * EMPLOYER JOBS
-   */
 
   const {
     data: jobs,
@@ -257,10 +240,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * PUBLISH / HIDE JOB
-   */
-
   const togglePublish = useMutation({
     mutationFn: async ({
       id,
@@ -290,10 +269,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * DELETE JOB
-   */
-
   const removeJob = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -316,10 +291,6 @@ function EmployerView({
       toast.error(error.message);
     },
   });
-
-  /*
-   * APPLICATION STATUS
-   */
 
   const setStatus = useMutation({
     mutationFn: async ({
@@ -350,10 +321,6 @@ function EmployerView({
     },
   });
 
-  /*
-   * MEMBERSHIP DISPLAY
-   */
-
   const membershipActive =
     membership?.membership_status === "active";
 
@@ -374,8 +341,6 @@ function EmployerView({
 
   return (
     <div className="mt-8 space-y-6">
-      {/* MEMBERSHIP CARD */}
-
       {membershipLoading ? (
         <Skeleton className="h-52 w-full rounded-2xl" />
       ) : membershipActive ? (
@@ -475,22 +440,15 @@ function EmployerView({
                 Active
               </p>
 
-              {cancellationScheduled ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Renewal cancelled
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Unlimited listings
-                </p>
-              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {cancellationScheduled
+                  ? "Renewal cancelled"
+                  : "Unlimited listings"}
+              </p>
             </div>
           </div>
         </div>
       ) : (
-        /*
-         * NO ACTIVE MEMBERSHIP
-         */
         <div className="rounded-2xl border border-border bg-sand p-6 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-2xl">
@@ -552,8 +510,6 @@ function EmployerView({
           </div>
         </div>
       )}
-
-      {/* JOB LIST */}
 
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
@@ -852,81 +808,109 @@ function CandidateView({
     );
   }
 
-  if (!applications?.length) {
-    return (
-      <div className="mt-8 rounded-2xl border border-dashed border-border p-12 text-center">
-        <Briefcase className="mx-auto size-6 text-muted-foreground" />
-
-        <p className="mt-3 font-medium">
-          You haven't applied to anything yet
-        </p>
-
-        <Button asChild className="mt-4">
-          <Link to="/jobs">
-            Browse jobs
-          </Link>
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="mt-8 space-y-3">
-      {applications.map((application) => {
-        const job =
-          application.jobs as unknown as {
-            id: string;
-            title: string;
-            company_name: string;
-            location: string;
-          } | null;
+    <div className="mt-8 space-y-6">
+      <div className="rounded-2xl border border-border bg-sand p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <UserRound className="size-5 text-primary" />
 
-        const label =
-          APPLICATION_STATUSES.find(
-            (status) =>
-              status.value ===
-              application.status,
-          )?.label ?? application.status;
-
-        return (
-          <div
-            key={application.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5"
-          >
-            <div>
-              {job ? (
-                <Link
-                  to="/jobs/$jobId"
-                  params={{
-                    jobId: job.id,
-                  }}
-                  className="font-display text-lg font-semibold hover:text-primary"
-                >
-                  {job.title}
-                </Link>
-              ) : (
-                <p className="font-display text-lg font-semibold">
-                  Listing removed
-                </p>
-              )}
-
-              <p className="text-sm text-muted-foreground">
-                {job
-                  ? `${job.company_name} · ${job.location} · `
-                  : ""}
-                applied{" "}
-                {timeAgo(
-                  application.created_at,
-                ).toLowerCase()}
+              <p className="font-display text-xl font-bold">
+                Your candidate profile
               </p>
             </div>
 
-            <Badge variant="secondary">
-              {label}
-            </Badge>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Keep your experience, availability and work preferences up to
+              date so employers can learn more about you.
+            </p>
           </div>
-        );
-      })}
+
+          <Button
+            asChild
+            variant="accent"
+          >
+            <Link to="/profile">
+              Edit My Profile
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {!applications?.length ? (
+        <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+          <Briefcase className="mx-auto size-6 text-muted-foreground" />
+
+          <p className="mt-3 font-medium">
+            You haven't applied to anything yet
+          </p>
+
+          <Button asChild className="mt-4">
+            <Link to="/jobs">
+              Browse jobs
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {applications.map((application) => {
+            const job =
+              application.jobs as unknown as {
+                id: string;
+                title: string;
+                company_name: string;
+                location: string;
+              } | null;
+
+            const label =
+              APPLICATION_STATUSES.find(
+                (status) =>
+                  status.value ===
+                  application.status,
+              )?.label ?? application.status;
+
+            return (
+              <div
+                key={application.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5"
+              >
+                <div>
+                  {job ? (
+                    <Link
+                      to="/jobs/$jobId"
+                      params={{
+                        jobId: job.id,
+                      }}
+                      className="font-display text-lg font-semibold hover:text-primary"
+                    >
+                      {job.title}
+                    </Link>
+                  ) : (
+                    <p className="font-display text-lg font-semibold">
+                      Listing removed
+                    </p>
+                  )}
+
+                  <p className="text-sm text-muted-foreground">
+                    {job
+                      ? `${job.company_name} · ${job.location} · `
+                      : ""}
+                    applied{" "}
+                    {timeAgo(
+                      application.created_at,
+                    ).toLowerCase()}
+                  </p>
+                </div>
+
+                <Badge variant="secondary">
+                  {label}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
