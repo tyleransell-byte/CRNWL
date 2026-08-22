@@ -113,6 +113,10 @@ function EmployerView({
 }) {
   const queryClient = useQueryClient();
 
+  /*
+   * MEMBERSHIP
+   */
+
   const {
     data: membership,
     isLoading: membershipLoading,
@@ -139,6 +143,10 @@ function EmployerView({
       return data;
     },
   });
+
+  /*
+   * STRIPE CHECKOUT
+   */
 
   const checkout = useMutation({
     mutationFn: async () => {
@@ -167,11 +175,16 @@ function EmployerView({
 
     onError: (error: Error) => {
       console.error(error);
+
       toast.error(
         "Could not start checkout. Please try again.",
       );
     },
   });
+
+  /*
+   * STRIPE CUSTOMER PORTAL
+   */
 
   const portal = useMutation({
     mutationFn: async () => {
@@ -200,11 +213,16 @@ function EmployerView({
 
     onError: (error: Error) => {
       console.error(error);
+
       toast.error(
         "Could not open membership settings.",
       );
     },
   });
+
+  /*
+   * EMPLOYER JOBS + APPLICATIONS
+   */
 
   const {
     data: jobs,
@@ -220,6 +238,7 @@ function EmployerView({
           *,
           applications(
             id,
+            candidate_id,
             full_name,
             email,
             phone,
@@ -239,6 +258,10 @@ function EmployerView({
       return data ?? [];
     },
   });
+
+  /*
+   * PUBLISH / HIDE JOB
+   */
 
   const togglePublish = useMutation({
     mutationFn: async ({
@@ -269,6 +292,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * DELETE JOB
+   */
+
   const removeJob = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -291,6 +318,10 @@ function EmployerView({
       toast.error(error.message);
     },
   });
+
+  /*
+   * APPLICATION STATUS
+   */
 
   const setStatus = useMutation({
     mutationFn: async ({
@@ -321,6 +352,10 @@ function EmployerView({
     },
   });
 
+  /*
+   * MEMBERSHIP DISPLAY
+   */
+
   const membershipActive =
     membership?.membership_status === "active";
 
@@ -341,6 +376,8 @@ function EmployerView({
 
   return (
     <div className="mt-8 space-y-6">
+      {/* MEMBERSHIP CARD */}
+
       {membershipLoading ? (
         <Skeleton className="h-52 w-full rounded-2xl" />
       ) : membershipActive ? (
@@ -511,6 +548,8 @@ function EmployerView({
         </div>
       )}
 
+      {/* JOB LIST */}
+
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : !jobs?.length ? (
@@ -557,6 +596,7 @@ function EmployerView({
             const applications =
               (job.applications ?? []) as Array<{
                 id: string;
+                candidate_id: string;
                 full_name: string;
                 email: string;
                 phone: string | null;
@@ -595,9 +635,7 @@ function EmployerView({
                     </span>
 
                     <Switch
-                      checked={
-                        job.is_published
-                      }
+                      checked={job.is_published}
                       aria-label="Published"
                       onCheckedChange={(value) =>
                         togglePublish.mutate({
@@ -657,33 +695,25 @@ function EmployerView({
                     {applications.map(
                       (application) => (
                         <div
-                          key={
-                            application.id
-                          }
+                          key={application.id}
                           className="rounded-lg border border-border bg-background p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                               <p className="font-medium">
-                                {
-                                  application.full_name
-                                }
+                                {application.full_name}
                               </p>
 
-                              <p className="mt-1 flex flex-wrap gap-x-4 text-xs text-muted-foreground">
+                              <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                 <span className="inline-flex items-center gap-1">
                                   <Mail className="size-3" />
-                                  {
-                                    application.email
-                                  }
+                                  {application.email}
                                 </span>
 
                                 {application.phone && (
                                   <span className="inline-flex items-center gap-1">
                                     <Phone className="size-3" />
-                                    {
-                                      application.phone
-                                    }
+                                    {application.phone}
                                   </span>
                                 )}
 
@@ -693,15 +723,29 @@ function EmployerView({
                                   )}
                                 </span>
                               </p>
+
+                              <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="mt-3"
+                              >
+                                <Link
+                                  to="/candidates/$candidateId"
+                                  params={{
+                                    candidateId:
+                                      application.candidate_id,
+                                  }}
+                                >
+                                  <UserRound className="mr-2 size-4" />
+                                  View Candidate Profile
+                                </Link>
+                              </Button>
                             </div>
 
                             <Select
-                              value={
-                                application.status
-                              }
-                              onValueChange={(
-                                status,
-                              ) =>
+                              value={application.status}
+                              onValueChange={(status) =>
                                 setStatus.mutate({
                                   id: application.id,
                                   status,
@@ -719,16 +763,10 @@ function EmployerView({
                                 {APPLICATION_STATUSES.map(
                                   (status) => (
                                     <SelectItem
-                                      key={
-                                        status.value
-                                      }
-                                      value={
-                                        status.value
-                                      }
+                                      key={status.value}
+                                      value={status.value}
                                     >
-                                      {
-                                        status.label
-                                      }
+                                      {status.label}
                                     </SelectItem>
                                   ),
                                 )}
@@ -737,11 +775,15 @@ function EmployerView({
                           </div>
 
                           {application.cover_note && (
-                            <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
-                              {
-                                application.cover_note
-                              }
-                            </p>
+                            <div className="mt-4 rounded-lg bg-secondary/40 p-4">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Candidate note
+                              </p>
+
+                              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                                {application.cover_note}
+                              </p>
+                            </div>
                           )}
                         </div>
                       ),
@@ -810,6 +852,8 @@ function CandidateView({
 
   return (
     <div className="mt-8 space-y-6">
+      {/* CANDIDATE PROFILE CARD */}
+
       <div className="rounded-2xl border border-border bg-sand p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -837,6 +881,8 @@ function CandidateView({
           </Button>
         </div>
       </div>
+
+      {/* APPLICATIONS */}
 
       {!applications?.length ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center">
